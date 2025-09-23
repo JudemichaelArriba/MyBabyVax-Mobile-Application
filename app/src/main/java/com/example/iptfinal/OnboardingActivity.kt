@@ -14,15 +14,28 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.iptfinal.databinding.ActivityOnboardingBinding
+
 class OnboardingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOnboardingBinding
     private lateinit var adapter: OnboardingAdapter
 
     private val onboardingItems = listOf(
-        OnboardingItem(R.drawable.bd1, "Welcome to My  BabyVax", "Easily keep track of your baby's vaccination schedule."),
-        OnboardingItem(R.drawable.babyicon5, "Get Reminders", "Never miss a vaccination with timely notifications."),
-        OnboardingItem(R.drawable.babyicon3, "Health Records", "Store and manage all your baby's health records in one place.")
+        OnboardingItem(
+            R.drawable.bd1,
+            "Welcome to My  BabyVax",
+            "Easily keep track of your baby's vaccination schedule."
+        ),
+        OnboardingItem(
+            R.drawable.babyicon5,
+            "Get Reminders",
+            "Never miss a vaccination with timely notifications."
+        ),
+        OnboardingItem(
+            R.drawable.babyicon3,
+            "Health Records",
+            "Store and manage all your baby's health records in one place."
+        )
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +56,7 @@ class OnboardingActivity : AppCompatActivity() {
         setupIndicators()
         setCurrentIndicator(0)
 
-        binding.viewPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 setCurrentIndicator(position)
             }
@@ -75,7 +88,12 @@ class OnboardingActivity : AppCompatActivity() {
             indicators[i] = TextView(this).apply {
                 text = "•"
                 textSize = 35f
-                setTextColor(ContextCompat.getColor(this@OnboardingActivity, R.color.whiteTransparent))
+                setTextColor(
+                    ContextCompat.getColor(
+                        this@OnboardingActivity,
+                        R.color.whiteTransparent
+                    )
+                )
                 this.layoutParams = layoutParams
             }
             binding.layoutIndicators.addView(indicators[i])
