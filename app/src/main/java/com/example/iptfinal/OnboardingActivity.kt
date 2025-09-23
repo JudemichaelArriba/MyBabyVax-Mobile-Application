@@ -20,9 +20,9 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var adapter: OnboardingAdapter
 
     private val onboardingItems = listOf(
-        OnboardingItem(null, "Welcome to My  BabyVax", "Easily keep track of your baby's vaccination schedule."),
-        OnboardingItem(null, "Get Reminders", "Never miss a vaccination with timely notifications."),
-        OnboardingItem(null, "Health Records", "Store and manage all your baby's health records in one place.")
+        OnboardingItem(R.drawable.bd1, "Welcome to My  BabyVax", "Easily keep track of your baby's vaccination schedule."),
+        OnboardingItem(R.drawable.babyicon5, "Get Reminders", "Never miss a vaccination with timely notifications."),
+        OnboardingItem(R.drawable.babyicon3, "Health Records", "Store and manage all your baby's health records in one place.")
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
