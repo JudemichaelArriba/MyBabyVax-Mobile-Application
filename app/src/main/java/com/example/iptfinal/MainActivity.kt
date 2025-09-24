@@ -28,7 +28,11 @@ class MainActivity : AppCompatActivity() {
 
 
 
+binding.googleLogin.setOnClickListener {
 
+
+
+}
         binding.toSignupBtn.setOnClickListener {
             val intent: Intent = Intent(this@MainActivity, signup::class.java)
             startActivity(intent)
