@@ -75,8 +75,9 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+//    implementation("com.google.android.gms:play-services-auth:21.4.0")
 
-
+    implementation(libs.google.auth)
 //
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

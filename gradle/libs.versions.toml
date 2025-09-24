@@ -13,6 +13,8 @@ cardview = "1.0.0"
 coroutines = "1.10.2"
 lifecycle = "2.9.4"
 firebase-bom = "34.3.0"
+google-auth = "21.4.0"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,7 +35,7 @@ lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", versi
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-database = { module = "com.google.firebase:firebase-database" }
-
+google-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "google-auth" }
 
 
 
