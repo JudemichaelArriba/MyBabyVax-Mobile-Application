@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -61,15 +62,31 @@ dependencies {
 //    implementation("com.github.TutorialsAndroid:progressx:v6.0.19")
 
 
-    implementation("com.google.android.material:material:1.12.0")
 
 
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    // Lifecycle
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.runtime)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
 
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-
+//
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+//
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+//    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+//
+//    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+//
+//
+//    implementation("com.google.firebase:firebase-auth")
+//    implementation("com.google.firebase:firebase-database")
 }

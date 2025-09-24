@@ -30,7 +30,7 @@ class OnboardingAdapter(private val items: List<OnboardingItem>) :
             if (item.image != null) {
                 onboardingImage.setImageResource(item.image)
             } else {
-                onboardingImage.setImageResource(android.R.color.transparent) // placeholder
+                onboardingImage.setImageResource(android.R.color.transparent)
             }
         }
     }
