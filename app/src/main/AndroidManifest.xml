@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IPTFinal">
         <activity
+            android:name=".components.bottomNav"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true" />
         <activity
