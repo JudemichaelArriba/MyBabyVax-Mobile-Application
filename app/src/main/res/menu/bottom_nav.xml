@@ -11,9 +11,9 @@
         android:icon="@drawable/baby"
         android:id="@+id/baby"/>
 
-    <item android:title="History"
-        android:icon="@drawable/history"
-        android:id="@+id/history"/>
+    <item android:title="Notifications"
+        android:icon="@drawable/notification"
+        android:id="@+id/notification"/>
 
 
 
