@@ -3,11 +3,17 @@ package com.example.iptfinal.components
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityBottomNavBinding
 import com.example.iptfinal.databinding.ActivityMainBinding
+import com.example.iptfinal.pages.babyPage
+import com.example.iptfinal.pages.homePage
+import com.example.iptfinal.pages.notificatificationPage
+import com.example.iptfinal.pages.profilePage
 
 class bottomNav : AppCompatActivity() {
 
@@ -17,10 +23,11 @@ class bottomNav : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
+        showFragment(homePage())
         binding = ActivityBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.bottomNavigator)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -31,28 +38,39 @@ class bottomNav : AppCompatActivity() {
 
 
         binding.bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId){
-                R.id.home ->{
+            when (item.itemId) {
+                R.id.home -> {
+                    showFragment(homePage())
                     true
                 }
-                R.id.baby ->{
+
+                R.id.baby -> {
+                    showFragment(babyPage())
                     true
                 }
-                R.id.notification ->{
+
+                R.id.notification -> {
+                    showFragment(notificatificationPage())
                     true
                 }
-                R.id.profile ->{
+
+                R.id.profile -> {
+                    showFragment(profilePage())
                     true
-                }else -> false
+                }
+
+                else -> false
             }
         }
 
 
-
     }
 
-
-
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
+    }
 
 
 }

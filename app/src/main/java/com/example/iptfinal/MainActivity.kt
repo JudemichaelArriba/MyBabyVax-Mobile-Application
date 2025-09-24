@@ -9,8 +9,10 @@ import androidx.activity.enableEdgeToEdge
 
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivityMainBinding
 import com.example.iptfinal.pages.signup
 import com.example.iptfinal.services.AuthServices
@@ -35,6 +37,12 @@ class MainActivity : AppCompatActivity() {
                             "Successfully logged in with Google",
                             Toast.LENGTH_SHORT
                         ).show()
+
+
+                        val intent: Intent = Intent(this@MainActivity, bottomNav::class.java)
+                        startActivity(intent)
+                        finish()
+
                     } else {
                         Toast.makeText(
                             this,
@@ -55,6 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         window.statusBarColor = android.graphics.Color.TRANSPARENT
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
