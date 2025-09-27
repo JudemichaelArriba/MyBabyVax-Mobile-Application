@@ -42,7 +42,34 @@ class AuthServices(private val context: Context) {
     }
 
 
-    fun handleSignInResult(data: android.content.Intent?, callback: (Boolean, String?) -> Unit) {
+//    fun handleSignInResult(data: android.content.Intent?, callback: (Boolean, String?) -> Unit) {
+//        try {
+//            val credential = oneTapClient.getSignInCredentialFromIntent(data)
+//            val idToken = credential.googleIdToken
+//            if (idToken != null) {
+//                val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+//                firebaseAuth.signInWithCredential(firebaseCredential)
+//                    .addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            callback(true, null)
+//                        } else {
+//                            callback(false, task.exception?.message)
+//                        }
+//                    }
+//            } else {
+//                callback(false, "No token found.")
+//            }
+//        } catch (e: Exception) {
+//            callback(false, e.message)
+//        }
+//    }
+
+
+
+    fun handleSignInResult(
+        data: android.content.Intent?,
+        callback: (account: com.google.android.gms.auth.api.identity.SignInCredential?, error: String?) -> Unit
+    ) {
         try {
             val credential = oneTapClient.getSignInCredentialFromIntent(data)
             val idToken = credential.googleIdToken
@@ -51,18 +78,24 @@ class AuthServices(private val context: Context) {
                 firebaseAuth.signInWithCredential(firebaseCredential)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            callback(true, null)
+
+                            callback(credential, null)
                         } else {
-                            callback(false, task.exception?.message)
+                            callback(null, task.exception?.message)
                         }
                     }
             } else {
-                callback(false, "No token found.")
+                callback(null, "No token found.")
             }
         } catch (e: Exception) {
-            callback(false, e.message)
+            callback(null, e.message)
         }
     }
+
+
+
+
+
 
     fun signOut() {
         firebaseAuth.signOut()

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -78,6 +79,8 @@ dependencies {
 //    implementation("com.google.android.gms:play-services-auth:21.4.0")
 
     implementation(libs.google.auth)
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
 //
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

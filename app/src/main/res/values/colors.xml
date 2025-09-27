@@ -4,6 +4,7 @@
 
     <color name="mainColor">#4169E1</color>
     <color name="secondary">#686868</color>
+    <color name="gray">#F2F2F2</color>
     <color name="brown">#E4E4E4</color>
     <color name="white">#FFFFFF</color>
     <color name="whiteTransparent">#B3FFFFFF</color>
