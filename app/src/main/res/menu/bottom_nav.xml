@@ -11,11 +11,11 @@
         android:icon="@drawable/baby"
         android:id="@+id/baby"/>
 
-    <item android:title="Notifications"
+    <!--<item android:title="Notifications"
         android:icon="@drawable/notification"
         android:id="@+id/notification"
         />
-
+-->
 
 
     <item android:title="Profile"

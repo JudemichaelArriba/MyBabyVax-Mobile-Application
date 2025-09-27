@@ -49,10 +49,10 @@ class bottomNav : AppCompatActivity() {
                     true
                 }
 
-                R.id.notification -> {
-                    showFragment(notificatificationPage())
-                    true
-                }
+//                R.id.notification -> {
+//                    showFragment(notificatificationPage())
+//                    true
+//                }
 
                 R.id.profile -> {
                     showFragment(profilePage())
