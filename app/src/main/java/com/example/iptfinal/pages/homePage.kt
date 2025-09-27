@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.FragmentHomePageBinding
@@ -33,6 +34,9 @@ class homePage : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().window.statusBarColor =
+            ContextCompat.getColor(requireContext(), android.R.color.white)
         val sharedPref = requireActivity()
             .getSharedPreferences("user_data", AppCompatActivity.MODE_PRIVATE)
         val profile = sharedPref.getString("profile", null)

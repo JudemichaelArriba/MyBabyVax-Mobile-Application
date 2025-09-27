@@ -28,7 +28,7 @@ class bottomNav : AppCompatActivity() {
         setContentView(binding.root)
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.bottomNavigator)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
