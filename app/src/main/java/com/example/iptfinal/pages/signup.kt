@@ -16,6 +16,7 @@ import com.example.iptfinal.MainActivity
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityMainBinding
 import com.example.iptfinal.databinding.ActivitySignupBinding
+import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Users
 import com.example.iptfinal.services.AuthServices
 import com.example.iptfinal.services.DatabaseService
@@ -49,7 +50,7 @@ class signup : AppCompatActivity() {
         }
 
 
-        dbService.fetchPuroks(object : DatabaseService.PurokCallback {
+        dbService.fetchPuroks(object : InterfaceClass.PurokCallback {
             override fun onPuroksLoaded(puroks: List<String>) {
                 val adapter = ArrayAdapter(
                     this@signup,

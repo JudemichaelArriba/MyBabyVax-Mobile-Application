@@ -18,13 +18,17 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.iptfinal.components.Dialogs
 import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivityMainBinding
+import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Users
+import com.example.iptfinal.pages.homePage
 import com.example.iptfinal.pages.signup
 import com.example.iptfinal.services.AuthServices
+import com.example.iptfinal.services.DatabaseService
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthSettings
 import com.google.firebase.database.FirebaseDatabase
 
 import kotlin.math.log
@@ -109,6 +113,59 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+
+        binding.loginBtn.setOnClickListener {
+            binding.loadingOverlay.visibility = View.VISIBLE
+            val email = binding.emailTv.text.toString().trim()
+            val password = binding.passwordTv.text.toString().trim()
+
+            authServices.signInWithEmail(email, password) { user, error ->
+                if (user != null) {
+
+                    val databaseService = DatabaseService()
+                    databaseService.fetchUserById(user.uid, object : InterfaceClass.UserCallback {
+                        override fun onUserLoaded(userData: Users) {
+
+                            val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
+                            sharedPref.edit {
+                                putString("uid", userData.uid)
+                                putString("username", "${userData.firstname} ${userData.lastname}")
+                                putString("profile", userData.profilePic)
+                                putString("email", userData.email)
+                                putString("mobileNum", userData.mobileNum)
+                                putString("address", userData.address)
+                            }
+
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Welcome ${userData.firstname}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            binding.loadingOverlay.visibility = View.GONE
+                            val intent = Intent(this@MainActivity, bottomNav::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
+
+                        override fun onError(message: String) {
+                            binding.loadingOverlay.visibility = View.GONE
+                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                } else {
+                    binding.loadingOverlay.visibility = View.GONE
+                    Toast.makeText(this, error ?: "Login failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
+
+
+
+
 
         authServices = AuthServices(this)
 

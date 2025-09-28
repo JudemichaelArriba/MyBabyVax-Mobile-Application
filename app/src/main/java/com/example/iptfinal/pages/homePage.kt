@@ -52,7 +52,12 @@ class homePage : Fragment() {
         }
 
         if (profile.isNullOrEmpty()) {
-            Log.d("HomePage", "Profile is null or empty")
+            val defaultProfile = R.drawable.profile
+            Glide.with(this)
+                .load(defaultProfile)
+                .placeholder(R.drawable.default_profile)
+                .into(binding.profileImage)
+
         }
         if (!profile.isNullOrEmpty()) {
             Glide.with(this)
