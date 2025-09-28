@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.cardview)
+//    implementation(libs.firebase.database.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,9 +79,12 @@ dependencies {
     implementation(libs.firebase.database)
 //    implementation("com.google.android.gms:play-services-auth:21.4.0")
 
+
+
     implementation(libs.google.auth)
     implementation(libs.glide)
     kapt(libs.glide.compiler)
+
 //
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

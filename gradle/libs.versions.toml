@@ -15,6 +15,7 @@ lifecycle = "2.9.4"
 firebase-bom = "34.3.0"
 google-auth = "21.4.0"
 glide = "4.16.0"
+firebaseDatabaseKtx = "22.0.1"
 
 
 [libraries]
@@ -36,9 +37,11 @@ lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", versi
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-database = { module = "com.google.firebase:firebase-database" }
+
 google-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "google-auth" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+#firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
 
 
 [plugins]
