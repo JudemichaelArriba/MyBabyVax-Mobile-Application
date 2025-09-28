@@ -128,6 +128,12 @@ class MainActivity : AppCompatActivity() {
             val email = binding.emailTv.text.toString().trim()
             val password = binding.passwordTv.text.toString().trim()
 
+            if (email.isEmpty() || password.isEmpty()) {
+                binding.loadingOverlay.visibility = View.GONE
+                Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             authServices.signInWithEmail(email, password) { user, error ->
                 if (user != null) {
 
