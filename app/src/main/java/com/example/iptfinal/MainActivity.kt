@@ -45,20 +45,17 @@ class MainActivity : AppCompatActivity() {
                 val data = result.data
                 authServices.handleSignInResult(data) { credential, error ->
                     if (credential != null) {
+
                         binding.loadingOverlay.visibility = View.VISIBLE
+
+                        val firebaseUser = FirebaseAuth.getInstance().currentUser
+
                         val profile = credential.profilePictureUri?.toString()
                         val username = credential.displayName?.toString()
                         val firstname = credential.givenName.toString()
                         val lastname = credential.familyName.toString()
                         val mobileNum = credential.phoneNumber.toString()
-                        val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
-                        sharedPref.edit {
-                            putString("profile", profile)
-                            putString("username", username)
-                        }
 
-
-                        val firebaseUser = FirebaseAuth.getInstance().currentUser
                         if (firebaseUser != null) {
                             val user = Users(
                                 uid = firebaseUser.uid,
@@ -73,7 +70,18 @@ class MainActivity : AppCompatActivity() {
                             database.getReference("users")
                                 .child(firebaseUser.uid)
                                 .setValue(user)
+                            val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
+                            sharedPref.edit {
+                                putString("uid", user.uid)
+                                putString("username", "${user.firstname} ${user.lastname}")
+                                putString("profile", user.profilePic)
+                                putString("email", user.email)
+                                putString("mobileNum", user.mobileNum)
+                                putString("address", user.address)
+                            }
+
                         }
+
 
                         Toast.makeText(
                             this,
@@ -160,11 +168,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-
-
-
-
 
 
         authServices = AuthServices(this)
