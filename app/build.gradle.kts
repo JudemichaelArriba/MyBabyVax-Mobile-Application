@@ -64,10 +64,11 @@ dependencies {
 //    implementation("com.github.TutorialsAndroid:progressx:v6.0.19")
 
 
-
+//    implementation("com.google.firebase:firebase-database-ktx")
 
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+    implementation(libs.androidx.core.ktx)
 
     // Lifecycle
     implementation(libs.lifecycle.viewmodel)
@@ -76,7 +77,12 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+
     implementation(libs.firebase.database)
+
+
+
+
 //    implementation("com.google.android.gms:play-services-auth:21.4.0")
 
 

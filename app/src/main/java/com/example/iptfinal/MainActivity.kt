@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
                         }
 
 
-
                         val firebaseUser = FirebaseAuth.getInstance().currentUser
                         if (firebaseUser != null) {
                             val user = Users(
@@ -71,18 +70,14 @@ class MainActivity : AppCompatActivity() {
                                 .setValue(user)
                         }
 
-
-
-
-
                         Toast.makeText(
                             this,
                             "Welcome: $username!",
                             Toast.LENGTH_SHORT
                         ).show()
-                            val intent = Intent(this@MainActivity, bottomNav::class.java)
-                            startActivity(intent)
-                            finish()
+                        val intent = Intent(this@MainActivity, bottomNav::class.java)
+                        startActivity(intent)
+                        finish()
 
                     } else {
 

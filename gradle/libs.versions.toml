@@ -41,7 +41,8 @@ firebase-database = { module = "com.google.firebase:firebase-database" }
 google-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "google-auth" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
-#firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+firebase-database-ktx = { module = "com.google.firebase:firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+
 
 
 [plugins]
