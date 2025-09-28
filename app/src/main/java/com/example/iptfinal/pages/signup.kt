@@ -58,6 +58,7 @@ class signup : AppCompatActivity() {
                 )
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.purokDropdown.setAdapter(adapter)
+                binding.purokDropdown.setTextColor(getColor(R.color.mainColor))
                 if (!adapter.isEmpty) {
                     for (i in 0 until adapter.count) {
                         val item = adapter.getItem(i)
@@ -88,7 +89,7 @@ class signup : AppCompatActivity() {
                     binding.emailLayout.boxStrokeColor =
                         getColor(com.google.android.material.R.color.design_default_color_error)
                     binding.emailLayout.helperText = "Invalid email"
-                    binding.ConfirmPasswordInputLayout.setHelperTextColor(
+                    binding.emailLayout.setHelperTextColor(
                         ColorStateList.valueOf(getColor(com.google.android.material.R.color.design_default_color_error))
                     )
                 } else {
