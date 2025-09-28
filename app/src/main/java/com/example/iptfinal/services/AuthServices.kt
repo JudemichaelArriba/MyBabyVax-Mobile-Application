@@ -11,6 +11,7 @@ import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 
 class AuthServices(private val context: Context) {
@@ -42,28 +43,6 @@ class AuthServices(private val context: Context) {
     }
 
 
-//    fun handleSignInResult(data: android.content.Intent?, callback: (Boolean, String?) -> Unit) {
-//        try {
-//            val credential = oneTapClient.getSignInCredentialFromIntent(data)
-//            val idToken = credential.googleIdToken
-//            if (idToken != null) {
-//                val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-//                firebaseAuth.signInWithCredential(firebaseCredential)
-//                    .addOnCompleteListener { task ->
-//                        if (task.isSuccessful) {
-//                            callback(true, null)
-//                        } else {
-//                            callback(false, task.exception?.message)
-//                        }
-//                    }
-//            } else {
-//                callback(false, "No token found.")
-//            }
-//        } catch (e: Exception) {
-//            callback(false, e.message)
-//        }
-//    }
-
 
 
     fun handleSignInResult(
@@ -93,6 +72,37 @@ class AuthServices(private val context: Context) {
     }
 
 
+
+    fun signUpWithEmail(
+        email: String,
+        password: String,
+        callback: (user: FirebaseUser?, error: String?) -> Unit
+    ) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(firebaseAuth.currentUser, null)
+                } else {
+                    callback(null, task.exception?.message)
+                }
+            }
+    }
+
+
+    fun signInWithEmail(
+        email: String,
+        password: String,
+        callback: (user: FirebaseUser?, error: String?) -> Unit
+    ) {
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(firebaseAuth.currentUser, null)
+                } else {
+                    callback(null, task.exception?.message)
+                }
+            }
+    }
 
 
 

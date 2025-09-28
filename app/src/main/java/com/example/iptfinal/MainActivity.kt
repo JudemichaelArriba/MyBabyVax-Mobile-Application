@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
                         val username = credential.displayName?.toString()
                         val firstname = credential.givenName.toString()
                         val lastname = credential.familyName.toString()
+                        val mobileNum = credential.phoneNumber.toString()
                         val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
                         sharedPref.edit {
                             putString("profile", profile)
@@ -60,8 +61,8 @@ class MainActivity : AppCompatActivity() {
                                 firstname = firstname,
                                 lastname = lastname,
                                 email = firebaseUser.email ?: "",
-                                password = "",
                                 address = "",
+                                mobileNum = mobileNum,
                                 profilePic = profile.toString()
                             )
                             val database = FirebaseDatabase.getInstance()
