@@ -1,5 +1,6 @@
 package com.example.iptfinal.pages
 
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -47,6 +48,21 @@ class profilePage : Fragment() {
 
         binding.emailText.text = email
 
+
+
+
+
+
+
+
+
+
+        binding.accountInfo.setOnClickListener {
+
+
+
+
+        }
         binding.username.text = username
         binding.logout.setOnClickListener {
 

@@ -11,18 +11,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.IPTFinal">
-
+        <activity
+            android:name=".pages.AccountInfoPage"
+            android:exported="false" />
         <activity
             android:name=".components.bottomNav"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="true" />
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".pages.signup"
-            android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".OnboardingActivity"
             android:exported="true">

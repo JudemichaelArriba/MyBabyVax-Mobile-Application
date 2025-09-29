@@ -91,7 +91,7 @@
 
 
             <TextView
-                android:id="@+id/accountInfor"
+                android:id="@+id/accountInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
