@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IPTFinal">
         <activity
+            android:name=".pages.SchedulePage"
+            android:exported="false" />
+        <activity
+            android:name=".pages.HistoryPage"
+            android:exported="false" />
+        <activity
             android:name=".pages.AccountInfoPage"
             android:exported="false" />
         <activity

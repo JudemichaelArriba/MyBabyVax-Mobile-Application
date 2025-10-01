@@ -84,16 +84,34 @@ class profilePage : Fragment() {
 
         binding.logout.setOnClickListener {
 
-            AuthServices(requireContext()).signOut()
-            val sharedPref =
-                requireActivity().getSharedPreferences("user_data", AppCompatActivity.MODE_PRIVATE)
-            sharedPref.edit {
-                clear()
+            binding.logout.setOnClickListener {
+                com.example.iptfinal.components.DialogHelper.showWarning(
+                    requireContext(),
+                    "Logout",
+                    "Are you sure you want to log out?",
+                    onConfirm = {
+
+                        AuthServices(requireContext()).signOut()
+                        val sharedPref =
+                            requireActivity().getSharedPreferences(
+                                "user_data",
+                                AppCompatActivity.MODE_PRIVATE
+                            )
+                        sharedPref.edit {
+                            clear()
+                        }
+                        val intent = Intent(requireActivity(), MainActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        requireActivity().finish()
+                    },
+                    onCancel = {
+
+                    }
+                )
             }
-            val intent = Intent(requireActivity(), MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            requireActivity().finish()
+
         }
 
         if (!profile.isNullOrEmpty()) {

@@ -1,5 +1,6 @@
 package com.example.iptfinal.pages
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -44,6 +45,18 @@ class homePage : Fragment() {
 
 
 
+
+
+        binding.history.setOnClickListener {
+            val intent = Intent(requireContext(), HistoryPage::class.java)
+            startActivity(intent)
+        }
+
+        binding.schedule.setOnClickListener {
+            val intent = Intent(requireContext(), SchedulePage::class.java)
+            startActivity(intent)
+        }
+
         if (!username.isNullOrEmpty()) {
             binding.username.text = username
         } else {
@@ -65,6 +78,8 @@ class homePage : Fragment() {
                 .placeholder(R.drawable.default_profile)
                 .into(binding.profileImage)
         }
+
+
     }
 
 }

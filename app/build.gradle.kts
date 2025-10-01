@@ -62,7 +62,7 @@ dependencies {
 
 //    implementation("io.github.tutorialsandroid:kalertdialog:20.4.8")
 //    implementation("com.github.TutorialsAndroid:progressx:v6.0.19")
-
+    implementation("com.github.TutorialsAndroid:KAlertDialog:v7.0.19")
 
 //    implementation("com.google.firebase:firebase-database-ktx")
 
@@ -85,6 +85,7 @@ dependencies {
 
 //    implementation("com.google.android.gms:play-services-auth:21.4.0")
 
+    implementation("com.google.android.material:material:1.9.0")
 
 
     implementation(libs.google.auth)

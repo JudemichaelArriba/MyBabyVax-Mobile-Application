@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.iptfinal.components.DialogHelper
 import com.example.iptfinal.components.Dialogs
 import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivityMainBinding
@@ -83,7 +84,6 @@ class MainActivity : AppCompatActivity() {
                             }
 
 
-
                         }
 
 
@@ -91,15 +91,16 @@ class MainActivity : AppCompatActivity() {
 
 
 
-                        Toast.makeText(
-                            this,
-                            "Welcome: $username!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        val intent = Intent(this@MainActivity, bottomNav::class.java)
-                        startActivity(intent)
-                        finish()
-
+                        binding.loadingOverlay.visibility = View.GONE
+                        DialogHelper.showSuccess(
+                            this@MainActivity,
+                            "Login Successful",
+                            "Welcome ${username}!"
+                        ) {
+                            val intent = Intent(this@MainActivity, bottomNav::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     } else {
 
                         Toast.makeText(

@@ -3,6 +3,8 @@
     <color name="black">#FF000000</color>
 
     <color name="mainColor">#4169E1</color>
+    <color name="rippleColor">#A5BDFF</color>
+    <color name="rippleColor2">#B4FFA9</color>
     <color name="secondary">#686868</color>
     <color name="gray">#F2F2F2</color>
     <color name="gray2">#D0D0D0</color>
