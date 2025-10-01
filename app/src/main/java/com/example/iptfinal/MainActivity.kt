@@ -78,9 +78,17 @@ class MainActivity : AppCompatActivity() {
                                 putString("email", user.email)
                                 putString("mobileNum", user.mobileNum)
                                 putString("address", user.address)
+                                putString("firstname", user.firstname)
+                                putString("lastname", user.lastname)
                             }
 
+
+
                         }
+
+
+
+
 
 
                         Toast.makeText(
@@ -160,6 +168,8 @@ class MainActivity : AppCompatActivity() {
                                 putString("email", userData.email)
                                 putString("mobileNum", userData.mobileNum)
                                 putString("address", userData.address)
+                                putString("firstname", userData.firstname)
+                                putString("lastname", userData.lastname)
                             }
 
                             Toast.makeText(

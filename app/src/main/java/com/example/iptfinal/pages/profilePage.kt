@@ -16,6 +16,7 @@ import com.example.iptfinal.R
 import com.example.iptfinal.databinding.FragmentProfilePageBinding
 import com.example.iptfinal.services.AuthServices
 import androidx.core.content.edit
+import com.example.iptfinal.components.bottomNav
 
 
 class profilePage : Fragment() {
@@ -45,25 +46,42 @@ class profilePage : Fragment() {
         val profile = sharedPref.getString("profile", null)
         val username = sharedPref.getString("username", null)
         val email = sharedPref.getString("email", null)
+        val uid = sharedPref.getString("uid", null)
+        val address = sharedPref.getString("address", null)
+        val mobile = sharedPref.getString("mobileNum", null)
+        val firstname = sharedPref.getString("firstname", null)
+        val lastname = sharedPref.getString("lastname", null)
+
 
         binding.emailText.text = email
 
-
-
-
-
-
-
-
-
+        Log.d(
+            "ProfilePage",
+            "Firstname: $firstname, Lastname: $lastname, Mobile: $mobile, Address: $address"
+        )
 
         binding.accountInfo.setOnClickListener {
-
-
-
+            val intent = Intent(requireContext(), AccountInfoPage::class.java)
+            startActivity(intent)
 
         }
         binding.username.text = username
+
+        binding.card1.setOnClickListener {
+            val intent = Intent(requireContext(), AccountInfoPage::class.java)
+            startActivity(intent)
+
+        }
+
+
+
+
+
+
+
+
+
+
         binding.logout.setOnClickListener {
 
             AuthServices(requireContext()).signOut()
