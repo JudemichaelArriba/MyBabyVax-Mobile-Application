@@ -4,15 +4,12 @@ package com.example.iptfinal
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.iptfinal.components.DialogHelper
@@ -21,25 +18,22 @@ import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivityMainBinding
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Users
-import com.example.iptfinal.pages.homePage
 import com.example.iptfinal.pages.signup
 import com.example.iptfinal.services.AuthServices
 import com.example.iptfinal.services.DatabaseService
-
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.example.iptfinal.services.SessionManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthSettings
 import com.google.firebase.database.FirebaseDatabase
-
-import kotlin.math.log
-
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var authServices: AuthServices
     private lateinit var binding: ActivityMainBinding
     private val myDialog = Dialogs(this)
+
+
+    private lateinit var sessionManager: SessionManager
+
     private val oneTapLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -50,7 +44,6 @@ class MainActivity : AppCompatActivity() {
                         binding.loadingOverlay.visibility = View.VISIBLE
 
                         val firebaseUser = FirebaseAuth.getInstance().currentUser
-
                         val profile = credential.profilePictureUri?.toString()
                         val username = credential.displayName?.toString()
                         val firstname = credential.givenName.toString()
@@ -67,29 +60,16 @@ class MainActivity : AppCompatActivity() {
                                 mobileNum = mobileNum,
                                 profilePic = profile.toString()
                             )
+
+
                             val database = FirebaseDatabase.getInstance()
                             database.getReference("users")
                                 .child(firebaseUser.uid)
                                 .setValue(user)
-                            val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
-                            sharedPref.edit {
-                                putString("uid", user.uid)
-                                putString("username", "${user.firstname} ${user.lastname}")
-                                putString("profile", user.profilePic)
-                                putString("email", user.email)
-                                putString("mobileNum", user.mobileNum)
-                                putString("address", user.address)
-                                putString("firstname", user.firstname)
-                                putString("lastname", user.lastname)
-                            }
 
 
+                            sessionManager.saveUser(user)
                         }
-
-
-
-
-
 
                         binding.loadingOverlay.visibility = View.GONE
                         DialogHelper.showSuccess(
@@ -101,13 +81,14 @@ class MainActivity : AppCompatActivity() {
                             startActivity(intent)
                             finish()
                         }
-                    } else {
 
+                    } else {
                         Toast.makeText(
                             this,
                             "Failed: ${error ?: "Unknown error"}",
                             Toast.LENGTH_SHORT
                         ).show()
+                        binding.loadingOverlay.visibility = View.GONE
                     }
                 }
             } else {
@@ -119,9 +100,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
 
+        sessionManager = SessionManager(this)
+
+
+        if (sessionManager.isLoggedIn()) {
             val intent = Intent(this@MainActivity, bottomNav::class.java)
             startActivity(intent)
             finish()
@@ -156,22 +139,12 @@ class MainActivity : AppCompatActivity() {
 
             authServices.signInWithEmail(email, password) { user, error ->
                 if (user != null) {
-
                     val databaseService = DatabaseService()
                     databaseService.fetchUserById(user.uid, object : InterfaceClass.UserCallback {
                         override fun onUserLoaded(userData: Users) {
 
-                            val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
-                            sharedPref.edit {
-                                putString("uid", userData.uid)
-                                putString("username", "${userData.firstname} ${userData.lastname}")
-                                putString("profile", userData.profilePic)
-                                putString("email", userData.email)
-                                putString("mobileNum", userData.mobileNum)
-                                putString("address", userData.address)
-                                putString("firstname", userData.firstname)
-                                putString("lastname", userData.lastname)
-                            }
+
+                            sessionManager.saveUser(userData)
 
                             Toast.makeText(
                                 this@MainActivity,
@@ -197,8 +170,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         authServices = AuthServices(this)
+
 
         binding.googleLogin.setOnClickListener {
             binding.loadingOverlay.visibility = View.VISIBLE
@@ -206,12 +179,11 @@ class MainActivity : AppCompatActivity() {
             authServices.signIn(this, oneTapLauncher)
         }
 
+
         binding.toSignupBtn.setOnClickListener {
-            val intent: Intent = Intent(this@MainActivity, signup::class.java)
+            val intent = Intent(this@MainActivity, signup::class.java)
             startActivity(intent)
             finish()
         }
     }
-
-
 }

@@ -1,18 +1,16 @@
-package com.example.iptfinal
+package com.example.iptfinal.pages
 
-import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import android.content.Context
 import android.content.Intent
-
+import android.os.Bundle
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
+import com.example.iptfinal.MainActivity
+import com.example.iptfinal.OnboardingAdapter
+import com.example.iptfinal.OnboardingItem
+import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityOnboardingBinding
 
 class OnboardingActivity : AppCompatActivity() {
@@ -114,14 +112,14 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun completeOnboarding() {
-        val prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
         prefs.edit().putBoolean("onboarding_completed", true).apply()
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 
     private fun isOnboardingCompleted(): Boolean {
-        val prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
         return prefs.getBoolean("onboarding_completed", false)
     }
 }

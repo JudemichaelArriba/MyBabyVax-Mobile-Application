@@ -11,7 +11,8 @@ import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityAccountInfoPageBinding
-import com.example.iptfinal.databinding.ActivityMainBinding
+import com.example.iptfinal.services.SessionManager
+
 
 class AccountInfoPage : AppCompatActivity() {
 
@@ -24,7 +25,6 @@ class AccountInfoPage : AppCompatActivity() {
         setContentView(binding.root)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-
         window.statusBarColor = ContextCompat.getColor(this, android.R.color.white)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.accountInfo)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -33,58 +33,46 @@ class AccountInfoPage : AppCompatActivity() {
         }
 
 
-        val sharedPref = getSharedPreferences("user_data", MODE_PRIVATE)
-        val profile = sharedPref.getString("profile", "N/A")
-        val username = sharedPref.getString("username", "N/A")
-        val email = sharedPref.getString("email", "N/A")
-        val uid = sharedPref.getString("uid", "N/A")
-        val address = sharedPref.getString("address", "N/A")
-        val mobile = sharedPref.getString("mobileNum", "N/A")
-        val firstname = sharedPref.getString("firstname", "N/A")
-        val lastname = sharedPref.getString("lastname", "N/A")
-        if (!profile.isNullOrEmpty()) {
+        val sessionManager = SessionManager(this)
+        val user = sessionManager.getUser()
+
+        if (user != null) {
+
             Glide.with(this)
-                .load(profile)
+                .load(if (user.profilePic.isNotEmpty()) user.profilePic else R.drawable.profile)
                 .placeholder(R.drawable.default_profile)
                 .into(binding.profileImage)
+
+
+            binding.firstnameTv.text = user.firstname.ifEmpty { "N/A" }
+            binding.lastnameTv.text = user.lastname.ifEmpty { "N/A" }
+            binding.emailTv.text = user.email.ifEmpty { "N/A" }
+            binding.addressTv.text = user.address.ifEmpty { "N/A" }
+            binding.mobileTv.text =
+                if (user.mobileNum.isEmpty() || user.mobileNum == "null") "N/A" else user.mobileNum
+
+            Log.d(
+                "AccountInfoLog",
+                "Firstname: ${user.firstname}, Lastname: ${user.lastname}, " +
+                        "Mobile: ${user.mobileNum}, Address: ${user.address}"
+            )
         } else {
-            val defaultProfile = R.drawable.profile
-            Glide.with(this)
-                .load(defaultProfile)
-                .placeholder(R.drawable.default_profile)
-                .into(binding.profileImage)
 
-        }
-
-        Log.d(
-            "AccountInfoLog",
-            "Firstname: $firstname, Lastname: $lastname, Mobile: $mobile, Address: $address"
-        )
-
-        binding.firstnameTv.text = firstname
-        binding.lastnameTv.text = lastname
-
-
-        binding.emailTv.text = email
-
-        if (address.isNullOrEmpty()) {
+            binding.firstnameTv.text = "N/A"
+            binding.lastnameTv.text = "N/A"
+            binding.emailTv.text = "N/A"
             binding.addressTv.text = "N/A"
-        } else {
-            binding.addressTv.text = address
-        }
-        if (mobile == "null") {
             binding.mobileTv.text = "N/A"
-        } else {
-            binding.mobileTv.text = mobile
-        }
 
+            Glide.with(this)
+                .load(R.drawable.profile)
+                .placeholder(R.drawable.default_profile)
+                .into(binding.profileImage)
+        }
 
 
         binding.backButton.setOnClickListener {
             finish()
         }
-
     }
-
-
 }
