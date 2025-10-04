@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
 
 
                             sessionManager.saveUser(user)
+                            sessionManager.setGoogleLogin(true)
                         }
 
                         binding.loadingOverlay.visibility = View.GONE
@@ -146,6 +147,7 @@ class MainActivity : AppCompatActivity() {
 
                             sessionManager.saveUser(userData)
 
+                            sessionManager.setGoogleLogin(false)
                             Toast.makeText(
                                 this@MainActivity,
                                 "Welcome ${userData.firstname}",

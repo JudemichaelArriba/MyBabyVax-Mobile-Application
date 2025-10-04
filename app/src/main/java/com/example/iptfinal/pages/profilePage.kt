@@ -50,10 +50,32 @@ class profilePage : Fragment() {
             )
 
 
-            Glide.with(this)
-                .load(if (user.profilePic.isNotEmpty()) user.profilePic else R.drawable.profile)
-                .placeholder(R.drawable.default_profile)
-                .into(binding.profileImage)
+            if (user.profilePic.isNotEmpty()) {
+                try {
+
+                    if (user.profilePic.startsWith("/9j") || user.profilePic.contains("base64")) {
+                        val imageBytes =
+                            android.util.Base64.decode(user.profilePic, android.util.Base64.DEFAULT)
+                        val bitmap = android.graphics.BitmapFactory.decodeByteArray(
+                            imageBytes,
+                            0,
+                            imageBytes.size
+                        )
+                        binding.profileImage.setImageBitmap(bitmap)
+                    } else {
+
+                        Glide.with(this)
+                            .load(user.profilePic)
+                            .placeholder(R.drawable.default_profile)
+                            .into(binding.profileImage)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    binding.profileImage.setImageResource(R.drawable.default_profile)
+                }
+            } else {
+                binding.profileImage.setImageResource(R.drawable.default_profile)
+            }
         } else {
 
             binding.username.text = "Guest"

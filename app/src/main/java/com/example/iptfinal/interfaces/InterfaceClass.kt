@@ -9,7 +9,10 @@ interface InterfaceClass {
         fun onPuroksLoaded(puroks: List<String>)
         fun onError(message: String)
     }
-
+    interface StatusCallback {
+        fun onSuccess(message: String)
+        fun onError(message: String)
+    }
 
     interface UserCallback {
         fun onUserLoaded(user: Users)

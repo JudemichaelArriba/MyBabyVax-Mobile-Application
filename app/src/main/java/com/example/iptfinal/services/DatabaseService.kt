@@ -52,5 +52,14 @@ class DatabaseService {
         })
     }
 
+    fun updateUser(uid: String, updatedUser: Users, callback: InterfaceClass.StatusCallback) {
+        databaseUsers.child(uid).setValue(updatedUser)
+            .addOnSuccessListener {
+                callback.onSuccess("Profile updated successfully")
+            }
+            .addOnFailureListener { e ->
+                callback.onError("Failed to update profile: ${e.message}")
+            }
+    }
 
 }

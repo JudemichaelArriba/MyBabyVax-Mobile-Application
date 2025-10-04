@@ -9,11 +9,9 @@ class SessionManager(context: Context) {
     private val sharedPref: SharedPreferences =
         context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
 
-
     fun saveUser(user: Users) {
         sharedPref.edit().apply {
             putString("uid", user.uid)
-
             putString("firstname", user.firstname)
             putString("lastname", user.lastname)
             putString("email", user.email)
@@ -24,13 +22,11 @@ class SessionManager(context: Context) {
         }
     }
 
-
     fun getUser(): Users {
         return Users(
             uid = sharedPref.getString("uid", "") ?: "",
             firstname = sharedPref.getString("firstname", "") ?: "",
             lastname = sharedPref.getString("lastname", "") ?: "",
-
             email = sharedPref.getString("email", "") ?: "",
             address = sharedPref.getString("address", "") ?: "",
             mobileNum = sharedPref.getString("mobileNum", "") ?: "",
@@ -38,13 +34,20 @@ class SessionManager(context: Context) {
         )
     }
 
-
     fun isLoggedIn(): Boolean {
         return sharedPref.contains("uid")
     }
 
-
     fun clearSession() {
         sharedPref.edit().clear().apply()
+    }
+
+
+    fun setGoogleLogin(isGoogle: Boolean) {
+        sharedPref.edit().putBoolean("isGoogleLogin", isGoogle).apply()
+    }
+
+    fun isGoogleLogin(): Boolean {
+        return sharedPref.getBoolean("isGoogleLogin", false)
     }
 }
