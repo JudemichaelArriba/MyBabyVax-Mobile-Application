@@ -58,7 +58,9 @@ class MainActivity : AppCompatActivity() {
                                 email = firebaseUser.email ?: "",
                                 address = "",
                                 mobileNum = mobileNum,
-                                profilePic = profile.toString()
+                                profilePic = profile.toString(),
+                                role = "User"
+
                             )
 
 
@@ -142,22 +144,35 @@ class MainActivity : AppCompatActivity() {
                 if (user != null) {
                     val databaseService = DatabaseService()
                     databaseService.fetchUserById(user.uid, object : InterfaceClass.UserCallback {
+
                         override fun onUserLoaded(userData: Users) {
 
 
-                            sessionManager.saveUser(userData)
+                            if (userData.role == "User") {
+                                sessionManager.saveUser(userData)
+                                sessionManager.setGoogleLogin(false)
 
-                            sessionManager.setGoogleLogin(false)
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Welcome ${userData.firstname}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "Welcome ${userData.firstname}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
 
-                            binding.loadingOverlay.visibility = View.GONE
-                            val intent = Intent(this@MainActivity, bottomNav::class.java)
-                            startActivity(intent)
-                            finish()
+                                binding.loadingOverlay.visibility = View.GONE
+                                val intent = Intent(this@MainActivity, bottomNav::class.java)
+                                startActivity(intent)
+                                finish()
+
+                            } else {
+
+                                FirebaseAuth.getInstance().signOut()
+                                binding.loadingOverlay.visibility = View.GONE
+                                DialogHelper.showError(
+                                    this@MainActivity,
+                                    "Access Denied",
+                                    "Only user accounts can log in through this app."
+                                )
+                            }
                         }
 
                         override fun onError(message: String) {

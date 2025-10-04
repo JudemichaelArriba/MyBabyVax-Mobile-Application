@@ -7,7 +7,8 @@ data class Users(
     val email: String = "",
     val address: String = "",
     val mobileNum: String = "",
-    val profilePic: String = ""
+    val profilePic: String = "",
+    val role: String = "user"
 
 
 )

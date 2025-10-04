@@ -107,8 +107,7 @@ class signup : AppCompatActivity() {
 
 
 
-        binding.confirmPasswordEditText.addTextChangedListener(object : TextWatcher{
-
+        binding.confirmPasswordEditText.addTextChangedListener(object : TextWatcher {
 
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -133,12 +132,6 @@ class signup : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
 
         })
-        
-
-
-
-
-
 
         binding.signupBtn.setOnClickListener {
             val firstname = binding.firstname.text.toString().trim()
@@ -176,7 +169,9 @@ class signup : AppCompatActivity() {
                             email = firebaseUser.email ?: "",
                             address = address,
                             mobileNum = mobileNum,
-                            profilePic = ""
+                            profilePic = "",
+                            role = "User"
+
                         )
                         val database = FirebaseDatabase.getInstance()
                         database.getReference("users")
