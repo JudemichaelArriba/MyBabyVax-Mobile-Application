@@ -20,6 +20,9 @@ import com.example.iptfinal.services.DatabaseService
 import com.example.iptfinal.services.SessionManager
 import androidx.activity.result.contract.ActivityResultContracts
 import android.view.WindowManager
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class EditProfile : AppCompatActivity() {
 
@@ -44,11 +47,30 @@ class EditProfile : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEditProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
+
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+
+
+            val bottomPadding = maxOf(systemBarsInsets.bottom, imeInsets.bottom)
+
+            view.setPadding(
+                0,
+                systemBarsInsets.top,
+                0,
+                bottomPadding
+            )
+
+            insets
+        }
         val sessionManager = SessionManager(this)
         val user = sessionManager.getUser()
 
