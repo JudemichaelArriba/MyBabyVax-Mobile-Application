@@ -1,60 +1,89 @@
 package com.example.iptfinal.pages
 
+import android.animation.ValueAnimator
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.iptfinal.R
+import androidx.fragment.app.Fragment
+import com.example.iptfinal.databinding.FragmentBabyPageBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [babyPage.newInstance] factory method to
- * create an instance of this fragment.
- */
 class babyPage : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentBabyPageBinding? = null
+    private val binding get() = _binding!!
+
+    private var isExpanded = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_baby_page, container, false)
+    ): View {
+        _binding = FragmentBabyPageBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment babyPage.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            babyPage().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val searchContainer = binding.searchContainer
+        val searchIcon = binding.searchIcon
+        val searchInput = binding.searchInput
+
+        searchIcon.setOnClickListener {
+            if (!isExpanded) {
+                expandSearchBar(searchContainer)
+                searchInput.visibility = View.VISIBLE
+                searchInput.alpha = 0f
+                searchInput.animate().alpha(1f).setDuration(200).start()
+            } else {
+                collapseSearchBar(searchContainer)
+                searchInput.animate().alpha(0f).setDuration(200)
+                    .withEndAction { searchInput.visibility = View.GONE }
+                    .start()
             }
+            isExpanded = !isExpanded
+        }
+
+
+        binding.btnAddBaby.setOnClickListener {
+            startActivity(Intent(requireContext(), AddBabyPage::class.java))
+        }
+    }
+
+    private fun expandSearchBar(view: View) {
+        val startWidth = view.width
+        val endWidth = 600
+
+        val animator = ValueAnimator.ofInt(startWidth, endWidth)
+        animator.addUpdateListener {
+            val value = it.animatedValue as Int
+            val params = view.layoutParams
+            params.width = value
+            view.layoutParams = params
+        }
+        animator.duration = 300
+        animator.start()
+    }
+
+    private fun collapseSearchBar(view: View) {
+        val startWidth = view.width
+        val endWidth = 120
+
+        val animator = ValueAnimator.ofInt(startWidth, endWidth)
+        animator.addUpdateListener {
+            val value = it.animatedValue as Int
+            val params = view.layoutParams
+            params.width = value
+            view.layoutParams = params
+        }
+        animator.duration = 300
+        animator.start()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
