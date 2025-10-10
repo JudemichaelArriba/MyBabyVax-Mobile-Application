@@ -5,9 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  android:background="@color/white"
+    android:background="@color/white"
     tools:context=".pages.select_vaccinePage">
-
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
@@ -21,8 +20,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
+            android:layout_height="match_parent">
 
             <ImageButton
                 android:id="@+id/backButton"
@@ -53,15 +51,30 @@
     </androidx.cardview.widget.CardView>
 
 
+    <ProgressBar
+        android:id="@+id/progressBarLoading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="16dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/mainColor"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardView" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewVaccines"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-       android:background="@color/white"
+        android:background="@color/white"
         android:clipToPadding="false"
         android:padding="8dp"
         android:scrollbars="vertical"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

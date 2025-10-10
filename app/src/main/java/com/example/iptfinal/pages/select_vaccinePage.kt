@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.iptfinal.adapters.VaccineAdapter
 import com.example.iptfinal.databinding.ActivitySelectVaccinePageBinding
@@ -12,6 +13,7 @@ import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Dose
 import com.example.iptfinal.models.Vaccine
 import com.example.iptfinal.services.DatabaseService
+import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,7 +35,6 @@ class select_vaccinePage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         binding = ActivitySelectVaccinePageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -48,7 +49,7 @@ class select_vaccinePage : AppCompatActivity() {
         babyImageUri = babyImageUriString?.let { Uri.parse(it) }
 
         setupUI()
-        loadVaccines()
+        loadVaccinesCoroutine()
     }
 
     private fun setupUI() {
@@ -56,14 +57,18 @@ class select_vaccinePage : AppCompatActivity() {
         binding.recyclerViewVaccines.layoutManager = LinearLayoutManager(this)
     }
 
-    private fun loadVaccines() {
+    private fun loadVaccinesCoroutine() {
         if (dateOfBirth.isNullOrEmpty()) return
 
         val ageInMonths = calculateAgeInMonths(dateOfBirth!!)
 
-        databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
-            override fun onVaccinesLoaded(vaccines: List<Vaccine>) {
 
+        binding.progressBarLoading.visibility = android.view.View.VISIBLE
+        binding.recyclerViewVaccines.visibility = android.view.View.GONE
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val vaccines = fetchVaccinesSuspend()
                 val filteredVaccines = vaccines.filter { vaccine ->
                     val eligibleAge = vaccine.eligibleAge ?: 0
                     val ageUnit = vaccine.ageUnit ?: "months"
@@ -76,52 +81,57 @@ class select_vaccinePage : AppCompatActivity() {
                 }
 
                 val dosesMap = mutableMapOf<String, List<Dose>>()
-                var loadedCount = 0
+                coroutineScope {
+                    filteredVaccines.map { vaccine ->
+                        async {
+                            val doses = fetchDosesSuspend(vaccine.id ?: "")
+                            dosesMap[vaccine.id ?: ""] = doses
+                        }
+                    }.awaitAll()
+                }
 
-                if (filteredVaccines.isEmpty()) {
+                withContext(Dispatchers.Main) {
                     binding.recyclerViewVaccines.adapter =
                         VaccineAdapter(this@select_vaccinePage, filteredVaccines, dosesMap)
-                    return
+
+
+                    binding.progressBarLoading.visibility = android.view.View.GONE
+                    binding.recyclerViewVaccines.visibility = android.view.View.VISIBLE
                 }
-
-                filteredVaccines.forEach { vaccine ->
-                    databaseService.fetchDoses(
-                        vaccine.id ?: "",
-                        object : InterfaceClass.DoseCallback {
-                            override fun onDosesLoaded(doses: List<Dose>) {
-                                dosesMap[vaccine.id!!] = doses
-                                loadedCount++
-                                if (loadedCount == filteredVaccines.size) {
-                                    binding.recyclerViewVaccines.adapter =
-                                        VaccineAdapter(
-                                            this@select_vaccinePage,
-                                            filteredVaccines,
-                                            dosesMap
-                                        )
-                                }
-                            }
-
-                            override fun onError(message: String) {
-                                Log.e("SelectVaccine", message)
-                                loadedCount++
-                                if (loadedCount == filteredVaccines.size) {
-                                    binding.recyclerViewVaccines.adapter =
-                                        VaccineAdapter(
-                                            this@select_vaccinePage,
-                                            filteredVaccines,
-                                            dosesMap
-                                        )
-                                }
-                            }
-                        })
+            } catch (e: Exception) {
+                Log.e("SelectVaccine", "Error loading vaccines: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    binding.progressBarLoading.visibility = android.view.View.GONE
                 }
             }
-
-            override fun onError(message: String) {
-                Log.e("SelectVaccine", message)
-            }
-        })
+        }
     }
+
+    private suspend fun fetchVaccinesSuspend(): List<Vaccine> =
+        suspendCancellableCoroutine { cont ->
+            databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
+                override fun onVaccinesLoaded(vaccines: List<Vaccine>) {
+                    cont.resume(vaccines) {}
+                }
+
+                override fun onError(message: String) {
+                    cont.resumeWith(Result.failure(Exception(message)))
+                }
+            })
+        }
+
+    private suspend fun fetchDosesSuspend(vaccineId: String): List<Dose> =
+        suspendCancellableCoroutine { cont ->
+            databaseService.fetchDoses(vaccineId, object : InterfaceClass.DoseCallback {
+                override fun onDosesLoaded(doses: List<Dose>) {
+                    cont.resume(doses) {}
+                }
+
+                override fun onError(message: String) {
+                    cont.resumeWith(Result.failure(Exception(message)))
+                }
+            })
+        }
 
     private fun calculateAgeInMonths(dob: String): Int {
         return try {
@@ -130,7 +140,6 @@ class select_vaccinePage : AppCompatActivity() {
             val today = Calendar.getInstance()
             val birthCal = Calendar.getInstance()
             birthCal.time = birthDate!!
-
             val years = today.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
             val months = today.get(Calendar.MONTH) - birthCal.get(Calendar.MONTH)
             years * 12 + months
@@ -140,7 +149,5 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-    fun getBabyImageUri(): Uri? {
-        return babyImageUri
-    }
+    fun getBabyImageUri(): Uri? = babyImageUri
 }
