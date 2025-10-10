@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.iptfinal.MainActivity
-import com.example.iptfinal.OnboardingAdapter
+import com.example.iptfinal.adapters.OnboardingAdapter
 import com.example.iptfinal.OnboardingItem
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityOnboardingBinding

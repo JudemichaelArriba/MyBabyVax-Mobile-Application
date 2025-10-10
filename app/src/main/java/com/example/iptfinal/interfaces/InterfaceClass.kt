@@ -9,6 +9,7 @@ interface InterfaceClass {
         fun onPuroksLoaded(puroks: List<String>)
         fun onError(message: String)
     }
+
     interface StatusCallback {
         fun onSuccess(message: String)
         fun onError(message: String)
@@ -19,5 +20,13 @@ interface InterfaceClass {
         fun onError(message: String)
     }
 
+    interface VaccineCallback {
+        fun onVaccinesLoaded(vaccines: List<com.example.iptfinal.models.Vaccine>)
+        fun onError(message: String)
+    }
 
+    interface DoseCallback {
+        fun onDosesLoaded(doses: List<com.example.iptfinal.models.Dose>)
+        fun onError(message: String)
+    }
 }

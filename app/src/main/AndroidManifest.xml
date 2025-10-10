@@ -14,9 +14,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IPTFinal">
         <activity
+            android:name=".pages.select_vaccinePage"
+            android:exported="false" />
+        <activity
             android:name=".pages.AddBabyPage"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize|stateHidden"/>
+            android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".pages.EditProfile"
             android:exported="false"

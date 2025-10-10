@@ -1,11 +1,11 @@
-package com.example.iptfinal
+package com.example.iptfinal.adapters
+
+import android.R
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.iptfinal.OnboardingItem
 import com.example.iptfinal.databinding.ItemOnboardingBinding
-
-
 
 class OnboardingAdapter(private val items: List<OnboardingItem>) :
     RecyclerView.Adapter<OnboardingAdapter.OnboardingViewHolder>() {
@@ -30,7 +30,7 @@ class OnboardingAdapter(private val items: List<OnboardingItem>) :
             if (item.image != null) {
                 onboardingImage.setImageResource(item.image)
             } else {
-                onboardingImage.setImageResource(android.R.color.transparent)
+                onboardingImage.setImageResource(R.color.transparent)
             }
         }
     }
