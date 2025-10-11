@@ -1,6 +1,5 @@
 package com.example.iptfinal.pages
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.iptfinal.adapters.VaccineAdapter
 import com.example.iptfinal.components.DialogHelper
-import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivitySelectVaccinePageBinding
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.*
@@ -60,7 +58,7 @@ class select_vaccinePage : AppCompatActivity() {
         loadVaccinesCoroutine()
 
         binding.btnSave.setOnClickListener {
-            saveBabyWithSchedules()
+            saveBabyWithSchedulesCoroutine()
         }
     }
 
@@ -72,12 +70,12 @@ class select_vaccinePage : AppCompatActivity() {
     private fun loadVaccinesCoroutine() {
         if (dateOfBirth.isNullOrEmpty()) return
         val ageInMonths = calculateAgeInMonths(dateOfBirth!!)
-        binding.progressBarLoading.visibility = android.view.View.VISIBLE
-        binding.recyclerViewVaccines.visibility = android.view.View.GONE
+        binding.progressBarLoading.visibility = View.VISIBLE
+        binding.recyclerViewVaccines.visibility = View.GONE
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             try {
-                val vaccines = fetchVaccinesSuspend()
+                val vaccines = fetchVaccines()
                 val filteredVaccines = vaccines.filter { vaccine ->
                     val eligibleAge = vaccine.eligibleAge ?: 0
                     val ageUnit = vaccine.ageUnit ?: "months"
@@ -93,44 +91,39 @@ class select_vaccinePage : AppCompatActivity() {
                 coroutineScope {
                     filteredVaccines.map { vaccine ->
                         async {
-                            val doses = fetchDosesSuspend(vaccine.id ?: "")
+                            val doses = fetchDoses(vaccine.id ?: "")
                             dosesMap[vaccine.id ?: ""] = doses
                         }
                     }.awaitAll()
                 }
 
-                withContext(Dispatchers.Main) {
-                    doseMap = HashMap(dosesMap)
-                    selectedVaccines = filteredVaccines
-                    vaccineAdapter =
-                        VaccineAdapter(this@select_vaccinePage, filteredVaccines, dosesMap)
-                    binding.recyclerViewVaccines.adapter = vaccineAdapter
-                    binding.progressBarLoading.visibility = android.view.View.GONE
-                    binding.recyclerViewVaccines.visibility = android.view.View.VISIBLE
-                }
+                doseMap = HashMap(dosesMap)
+                selectedVaccines = filteredVaccines
+                vaccineAdapter = VaccineAdapter(this@select_vaccinePage, filteredVaccines, dosesMap)
+                binding.recyclerViewVaccines.adapter = vaccineAdapter
+                binding.progressBarLoading.visibility = View.GONE
+                binding.recyclerViewVaccines.visibility = View.VISIBLE
+
             } catch (e: Exception) {
                 Log.e("SelectVaccine", "Error loading vaccines: ${e.message}")
-                withContext(Dispatchers.Main) {
-                    binding.progressBarLoading.visibility = android.view.View.GONE
-                }
+                binding.progressBarLoading.visibility = View.GONE
             }
         }
     }
 
-    private suspend fun fetchVaccinesSuspend(): List<Vaccine> =
-        suspendCancellableCoroutine { cont ->
-            databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
-                override fun onVaccinesLoaded(vaccines: List<Vaccine>) {
-                    cont.resume(vaccines) {}
-                }
+    private suspend fun fetchVaccines(): List<Vaccine> = suspendCancellableCoroutine { cont ->
+        databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
+            override fun onVaccinesLoaded(vaccines: List<Vaccine>) {
+                cont.resume(vaccines) {}
+            }
 
-                override fun onError(message: String) {
-                    cont.resumeWith(Result.failure(Exception(message)))
-                }
-            })
-        }
+            override fun onError(message: String) {
+                cont.resumeWith(Result.failure(Exception(message)))
+            }
+        })
+    }
 
-    private suspend fun fetchDosesSuspend(vaccineId: String): List<Dose> =
+    private suspend fun fetchDoses(vaccineId: String): List<Dose> =
         suspendCancellableCoroutine { cont ->
             databaseService.fetchDoses(vaccineId, object : InterfaceClass.DoseCallback {
                 override fun onDosesLoaded(doses: List<Dose>) {
@@ -159,9 +152,10 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-    private fun saveBabyWithSchedules() {
+    private fun saveBabyWithSchedulesCoroutine() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         binding.loadingOverlay.visibility = View.VISIBLE
+
         val baby = Baby(
             fullName = fullName,
             gender = gender,
@@ -176,17 +170,13 @@ class select_vaccinePage : AppCompatActivity() {
         val schedules = selectedVaccines.map { vaccine ->
             val doses = doseMap[vaccine.id] ?: emptyList()
             var lastDate = Calendar.getInstance()
-
             lastDate = getNextWeekday(lastDate, vaccine.schedule)
 
             val doseSchedules = doses.map { dose ->
                 val intervalNum = dose.intervalNumber ?: 0
                 val intervalUnit = dose.intervalUnit ?: "days"
-
                 lastDate = calculateNextDoseDate(lastDate, intervalNum, intervalUnit)
-
                 lastDate = getNextWeekday(lastDate, vaccine.schedule)
-
                 val intervalText = "$intervalNum $intervalUnit"
                 BabyDoseSchedule(dose.name, intervalText, formatCalendarDate(lastDate))
             }
@@ -202,32 +192,37 @@ class select_vaccinePage : AppCompatActivity() {
             )
         }
 
-        databaseService.addBabyWithSchedule(
-            userId,
-            baby,
-            schedules,
-            object : InterfaceClass.StatusCallback {
-                override fun onSuccess(message: String) {
-                    binding.loadingOverlay.visibility = View.GONE
-                    Log.d("AddBaby", message)
-                    DialogHelper.showSuccess(
-                        this@select_vaccinePage,
-                        "Successfully Saved",
-                        "The Baby info is Successfully saved"
-                    ) {
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    suspendCancellableCoroutine<Unit> { cont ->
+                        databaseService.addBabyWithSchedule(
+                            userId, baby, schedules,
+                            object : InterfaceClass.StatusCallback {
+                                override fun onSuccess(message: String) {
+                                    cont.resume(Unit) {}
+                                }
 
-                        finish()
+                                override fun onError(error: String) {
+                                    cont.resumeWith(Result.failure(Exception(error)))
+                                }
+                            })
                     }
-
-
                 }
 
-                override fun onError(error: String) {
-                    Log.e("AddBaby", error ?: "")
-                }
-            })
+                binding.loadingOverlay.visibility = View.GONE
+                DialogHelper.showSuccess(
+                    this@select_vaccinePage,
+                    "Successfully Saved",
+                    "The Baby info is successfully saved"
+                ) { finish() }
+
+            } catch (e: Exception) {
+                binding.loadingOverlay.visibility = View.GONE
+                Log.e("SaveBaby", "Error saving baby: ${e.message}")
+            }
+        }
     }
-
 
     private fun calculateNextDoseDate(
         baseDate: Calendar,
@@ -257,13 +252,11 @@ class select_vaccinePage : AppCompatActivity() {
             "saturday" -> Calendar.SATURDAY
             else -> return calendar
         }
-
         while (calendar.get(Calendar.DAY_OF_WEEK) != targetDay) {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
         return calendar
     }
-
 
     private fun formatCalendarDate(calendar: Calendar): String {
         val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
@@ -274,6 +267,4 @@ class select_vaccinePage : AppCompatActivity() {
         val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
         return sdf.format(Date())
     }
-
-
 }
