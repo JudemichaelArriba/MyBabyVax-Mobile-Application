@@ -48,8 +48,14 @@ class select_vaccinePage : AppCompatActivity() {
         babyImageUriString = intent.getStringExtra("imageUri")
         babyImageUri = babyImageUriString?.let { Uri.parse(it) }
 
+
         setupUI()
         loadVaccinesCoroutine()
+
+
+        binding.btnSave.setOnClickListener {
+
+        }
     }
 
     private fun setupUI() {
