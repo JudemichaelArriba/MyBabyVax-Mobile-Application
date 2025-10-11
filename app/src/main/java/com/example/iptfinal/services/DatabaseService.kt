@@ -126,19 +126,20 @@ class DatabaseService {
         schedules: List<BabyVaccineSchedule>,
         callback: InterfaceClass.StatusCallback
     ) {
-        val newBabyRef = databaseBabies.push()
-        baby.id = newBabyRef.key
+        val rootRef = FirebaseDatabase.getInstance().reference
+        val userBabiesRef = rootRef.child("users").child(userId).child("babies")
+        val newBabyRef = userBabiesRef.push()
+        val babyId = newBabyRef.key ?: return callback.onError("Failed to generate baby ID.")
+
+        baby.id = babyId
         baby.parentId = userId
         baby.createdAt = System.currentTimeMillis()
-        val userBabyRef = databaseUsers.child(userId).child("babies").child(baby.id!!)
-        val scheduleMap = mutableMapOf<String, Any>()
-        for (schedule in schedules) {
-            val vaccineKey = schedule.vaccineName ?: "vaccine_${System.currentTimeMillis()}"
-            scheduleMap[vaccineKey] = schedule
-        }
 
-        val babyData = baby.copy()
-        val babyRefData = hashMapOf<String, Any?>(
+        val scheduleMap =
+            schedules.associateBy { it.vaccineName ?: "vaccine_${System.currentTimeMillis()}" }
+
+        val babyData = mapOf(
+            "id" to baby.id,
             "fullName" to baby.fullName,
             "gender" to baby.gender,
             "dateOfBirth" to baby.dateOfBirth,
@@ -146,31 +147,15 @@ class DatabaseService {
             "weightAtBirth" to baby.weightAtBirth,
             "heightAtBirth" to baby.heightAtBirth,
             "bloodType" to baby.bloodType,
-            "guardianName" to baby.guardianName,
-            "contactNumber" to baby.contactNumber,
-            "address" to baby.address,
             "profileImageUrl" to baby.profileImageUrl,
             "parentId" to baby.parentId,
             "createdAt" to baby.createdAt,
             "schedules" to scheduleMap
         )
 
-
-        val updates = hashMapOf<String, Any>(
-            "/babies/${baby.id}" to babyRefData,
-            "/users/$userId/babies/${baby.id}" to mapOf(
-                "fullName" to baby.fullName,
-                "createdAt" to baby.createdAt
-            )
-        )
-
-        FirebaseDatabase.getInstance().reference.updateChildren(updates)
-            .addOnSuccessListener {
-                callback.onSuccess("Baby and schedule added successfully.")
-            }
-            .addOnFailureListener { e ->
-                callback.onError("Failed to add baby: ${e.message}")
-            }
+        newBabyRef.setValue(babyData)
+            .addOnSuccessListener { callback.onSuccess("Baby added as a child of the user.") }
+            .addOnFailureListener { e -> callback.onError("Failed to add baby: ${e.message}") }
     }
 
 
