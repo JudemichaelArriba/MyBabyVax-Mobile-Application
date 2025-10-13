@@ -10,6 +10,8 @@ import com.example.iptfinal.databinding.ItemBabyBinding
 import com.example.iptfinal.models.Baby
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 
 class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
 
@@ -54,12 +56,23 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                 holder.binding.profileImage.setImageResource(android.R.color.darker_gray)
             }
 
-
             when (baby.gender?.lowercase()) {
-                "male" -> genderIcon.setImageResource(R.drawable.ic_male_icon)
-                "female" -> genderIcon.setImageResource(R.drawable.ic_female_icon)
-                else -> genderIcon.setImageResource(android.R.color.transparent)
+                "male" -> {
+                    genderIcon.setImageResource(R.drawable.ic_male_icon)
+                    genderIcon.setColorFilter(null)
+                }
+                "female" -> {
+                    genderIcon.setImageResource(R.drawable.ic_female_icon)
+                    genderIcon.setColorFilter(
+                        ContextCompat.getColor(genderIcon.context, R.color.pink),
+                        android.graphics.PorterDuff.Mode.SRC_IN
+                    )
+                }
+                else -> {
+                    genderIcon.setImageResource(android.R.color.transparent)
+                }
             }
+
 
 
             btnMoreOptions.setOnClickListener {

@@ -49,14 +49,20 @@ class babyPage : Fragment() {
 
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
         if (currentUserId != null) {
-            lifecycleScope.launch(Dispatchers.Main) {
+
+
+            viewLifecycleOwner.lifecycleScope.launch {
                 try {
+                    binding.loading.visibility = View.VISIBLE
                     val babies = fetchBabies(currentUserId)
                     babyAdapter.submitList(babies)
                 } catch (e: Exception) {
                     Log.e("BabyPage", "Error fetching babies: ${e.message}")
+                }finally {
+                    binding.loading.visibility = View.GONE
                 }
             }
+
         }
     }
 
