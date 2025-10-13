@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import java.util.Calendar
 
 class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
 
@@ -61,6 +62,7 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                     genderIcon.setImageResource(R.drawable.ic_male_icon)
                     genderIcon.setColorFilter(null)
                 }
+
                 "female" -> {
                     genderIcon.setImageResource(R.drawable.ic_female_icon)
                     genderIcon.setColorFilter(
@@ -68,6 +70,7 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                         android.graphics.PorterDuff.Mode.SRC_IN
                     )
                 }
+
                 else -> {
                     genderIcon.setImageResource(android.R.color.transparent)
                 }
@@ -98,13 +101,35 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
         val year = dobParts[0].toIntOrNull() ?: return ""
         val month = dobParts[1].toIntOrNull() ?: return ""
         val day = dobParts[2].toIntOrNull() ?: return ""
-        val today = java.util.Calendar.getInstance()
-        var ageYears = today.get(java.util.Calendar.YEAR) - year
-        var ageMonths = today.get(java.util.Calendar.MONTH) + 1 - month
+
+        val birthDate = Calendar.getInstance().apply {
+            set(year, month - 1, day)
+        }
+
+        val today = Calendar.getInstance()
+
+        var ageYears = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR)
+        var ageMonths = today.get(Calendar.MONTH) - birthDate.get(Calendar.MONTH)
+        var ageDays = today.get(Calendar.DAY_OF_MONTH) - birthDate.get(Calendar.DAY_OF_MONTH)
+
+        if (ageDays < 0) {
+            ageMonths--
+
+            val prevMonth = today.clone() as Calendar
+            prevMonth.add(Calendar.MONTH, -1)
+            ageDays += prevMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
+        }
+
         if (ageMonths < 0) {
             ageYears--
             ageMonths += 12
         }
-        return if (ageYears == 0) "$ageMonths months old" else "$ageYears years old"
+
+        return buildString {
+            if (ageYears > 0) append("$ageYears years ")
+            if (ageMonths > 0) append("$ageMonths months ")
+            if (ageDays > 0) append("$ageDays days")
+            if (isEmpty()) append("0 days")
+        }.trim()
     }
 }
