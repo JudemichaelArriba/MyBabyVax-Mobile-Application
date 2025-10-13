@@ -72,8 +72,7 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- RecyclerView for Baby List -->
-        <!--
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/babyRecyclerView"
             android:layout_width="0dp"
@@ -85,7 +84,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
-        -->
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddBaby"

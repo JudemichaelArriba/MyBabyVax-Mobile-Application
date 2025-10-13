@@ -220,21 +220,24 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/bloodTypeLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="16dp"
+            android:textColorHint="@color/secondary"
             app:boxStrokeColor="@color/mainColor"
             app:hintTextColor="@color/mainColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/heightLayout">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <AutoCompleteTextView
                 android:id="@+id/etBloodType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Blood Type (e.g., O+)" />
+                android:hint="Blood Type (e.g., O+)"
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
 

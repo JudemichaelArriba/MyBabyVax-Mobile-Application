@@ -1,5 +1,6 @@
 package com.example.iptfinal.interfaces
 
+import com.example.iptfinal.models.Baby
 import com.example.iptfinal.models.Users
 
 interface InterfaceClass {
@@ -29,4 +30,12 @@ interface InterfaceClass {
         fun onDosesLoaded(doses: List<com.example.iptfinal.models.Dose>)
         fun onError(message: String)
     }
+
+
+
+        interface BabiesCallback {
+            fun onBabiesLoaded(babies: List<Baby>)
+            fun onError(message: String?)
+        }
+
 }

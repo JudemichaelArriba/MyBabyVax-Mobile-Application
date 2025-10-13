@@ -159,4 +159,43 @@ class DatabaseService {
     }
 
 
+
+
+
+
+
+
+    fun fetchBabiesForUser(userId: String, callback: InterfaceClass.BabiesCallback) {
+        val babiesRef = databaseUsers.child(userId).child("babies")
+        babiesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val babyList = mutableListOf<Baby>()
+                for (babySnap in snapshot.children) {
+                    val baby = babySnap.getValue(Baby::class.java)
+                    if (baby != null) {
+                        baby.id = babySnap.key
+                        babyList.add(baby)
+                        Log.d("DatabaseService", "Baby found: ${baby.fullName}")
+                    }
+                }
+                callback.onBabiesLoaded(babyList)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("DatabaseService", "Error fetching babies: ${error.message}")
+                callback.onError(error.message)
+            }
+        })
+    }
+
+
+
+
+
+
+
+
+
+
+
 }

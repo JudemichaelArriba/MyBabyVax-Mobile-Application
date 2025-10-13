@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -47,11 +48,16 @@ class AddBabyPage : AppCompatActivity() {
             insets
         }
 
+        val bloodTypes = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
 
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, bloodTypes)
+        binding.etBloodType.setAdapter(adapter)
         binding.btnSaveBaby.isEnabled = false
         binding.btnSaveBaby.alpha = 0.5f
 
-
+        binding.etBloodType.setOnClickListener {
+            binding.etBloodType.showDropDown()
+        }
         binding.backButton.setOnClickListener { finish() }
         binding.etDateOfBirth.setOnClickListener { showDatePicker() }
         binding.btnUploadImage.setOnClickListener { pickImageFromGallery() }

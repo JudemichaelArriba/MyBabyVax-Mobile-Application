@@ -62,6 +62,29 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
+
+
+
+
+
+
+
+
+
+    private fun uriToBase64(uri: Uri): String? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+            bytes?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
+
     private fun setupUI() {
         binding.backButton.setOnClickListener { finish() }
         binding.recyclerViewVaccines.layoutManager = LinearLayoutManager(this)
@@ -155,7 +178,7 @@ class select_vaccinePage : AppCompatActivity() {
     private fun saveBabyWithSchedulesCoroutine() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         binding.loadingOverlay.visibility = View.VISIBLE
-
+        val imageBase64 = babyImageUri?.let { uriToBase64(it) }
         val baby = Baby(
             fullName = fullName,
             gender = gender,
@@ -164,7 +187,7 @@ class select_vaccinePage : AppCompatActivity() {
             weightAtBirth = weight?.toDoubleOrNull(),
             heightAtBirth = height?.toDoubleOrNull(),
             bloodType = bloodType,
-            profileImageUrl = babyImageUriString
+            profileImageUrl = imageBase64
         )
 
         val schedules = selectedVaccines.map { vaccine ->
