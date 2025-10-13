@@ -23,7 +23,10 @@ import com.example.iptfinal.services.AuthServices
 import com.example.iptfinal.services.DatabaseService
 import com.example.iptfinal.services.SessionManager
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,38 +54,81 @@ class MainActivity : AppCompatActivity() {
                         val mobileNum = credential.phoneNumber.toString()
 
                         if (firebaseUser != null) {
-                            val user = Users(
-                                uid = firebaseUser.uid,
-                                firstname = firstname,
-                                lastname = lastname,
-                                email = firebaseUser.email ?: "",
-                                address = "",
-                                mobileNum = mobileNum,
-                                profilePic = profile.toString(),
-                                role = "User"
-
-                            )
-
-
-                            val database = FirebaseDatabase.getInstance()
-                            database.getReference("users")
+                            val userRef = FirebaseDatabase.getInstance()
+                                .getReference("users")
                                 .child(firebaseUser.uid)
-                                .setValue(user)
 
 
-                            sessionManager.saveUser(user)
-                            sessionManager.setGoogleLogin(true)
-                        }
+                            userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    if (snapshot.exists()) {
 
-                        binding.loadingOverlay.visibility = View.GONE
-                        DialogHelper.showSuccess(
-                            this@MainActivity,
-                            "Login Successful",
-                            "Welcome ${username}!"
-                        ) {
-                            val intent = Intent(this@MainActivity, bottomNav::class.java)
-                            startActivity(intent)
-                            finish()
+                                        sessionManager.saveUser(snapshot.getValue(Users::class.java)!!)
+                                        sessionManager.setGoogleLogin(true)
+
+                                        binding.loadingOverlay.visibility = View.GONE
+                                        DialogHelper.showSuccess(
+                                            this@MainActivity,
+                                            "Login Successful",
+                                            "Welcome back ${username}!"
+                                        ) {
+                                            val intent = Intent(this@MainActivity, bottomNav::class.java)
+                                            startActivity(intent)
+                                            finish()
+                                        }
+
+                                    } else {
+
+                                        val newUser = Users(
+                                            uid = firebaseUser.uid,
+                                            firstname = firstname,
+                                            lastname = lastname,
+                                            email = firebaseUser.email ?: "",
+                                            address = "",
+                                            mobileNum = mobileNum,
+                                            profilePic = profile.toString(),
+                                            role = "User"
+                                        )
+
+                                        userRef.setValue(newUser)
+                                            .addOnSuccessListener {
+                                                sessionManager.saveUser(newUser)
+                                                sessionManager.setGoogleLogin(true)
+                                                binding.loadingOverlay.visibility = View.GONE
+                                                DialogHelper.showSuccess(
+                                                    this@MainActivity,
+                                                    "Login Successful",
+                                                    "Welcome ${username}!"
+                                                ) {
+                                                    val intent =
+                                                        Intent(this@MainActivity, bottomNav::class.java)
+                                                    startActivity(intent)
+                                                    finish()
+                                                }
+                                            }
+                                            .addOnFailureListener { e ->
+                                                binding.loadingOverlay.visibility = View.GONE
+                                                Toast.makeText(
+                                                    this@MainActivity,
+                                                    "Failed to create user: ${e.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    binding.loadingOverlay.visibility = View.GONE
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Database error: ${error.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            })
+                        } else {
+                            binding.loadingOverlay.visibility = View.GONE
+                            Toast.makeText(this, "Firebase user is null", Toast.LENGTH_SHORT).show()
                         }
 
                     } else {
