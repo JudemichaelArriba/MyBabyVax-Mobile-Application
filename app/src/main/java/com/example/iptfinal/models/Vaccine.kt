@@ -7,8 +7,7 @@ data class Vaccine(
     var route: String? = null,
     var type: String? = null,
     var sideEffects: String? = null,
-    var eligibleAge: Int? = null,
+    var eligibleAge: Double? = null,
     var ageUnit: String? = null,
-    var schedule: String? = null,
     var hasDosage: Boolean = false
 )

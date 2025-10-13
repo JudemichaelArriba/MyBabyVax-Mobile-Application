@@ -44,6 +44,7 @@ class select_vaccinePage : AppCompatActivity() {
         binding = ActivitySelectVaccinePageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         fullName = intent.getStringExtra("fullName")
         gender = intent.getStringExtra("gender")
         dateOfBirth = intent.getStringExtra("dateOfBirth")
@@ -63,14 +64,6 @@ class select_vaccinePage : AppCompatActivity() {
     }
 
 
-
-
-
-
-
-
-
-
     private fun uriToBase64(uri: Uri): String? {
         return try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -83,36 +76,26 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-
-
     private fun setupUI() {
         binding.backButton.setOnClickListener { finish() }
         binding.recyclerViewVaccines.layoutManager = LinearLayoutManager(this)
     }
 
+    /**
+     * Loads ALL vaccines from Firebase (no filtering by eligible age)
+     */
     private fun loadVaccinesCoroutine() {
-        if (dateOfBirth.isNullOrEmpty()) return
-        val ageInMonths = calculateAgeInMonths(dateOfBirth!!)
         binding.progressBarLoading.visibility = View.VISIBLE
         binding.recyclerViewVaccines.visibility = View.GONE
 
         lifecycleScope.launch {
             try {
                 val vaccines = fetchVaccines()
-                val filteredVaccines = vaccines.filter { vaccine ->
-                    val eligibleAge = vaccine.eligibleAge ?: 0
-                    val ageUnit = vaccine.ageUnit ?: "months"
-                    when (ageUnit.lowercase(Locale.getDefault())) {
-                        "days" -> ageInMonths * 30 >= eligibleAge
-                        "months" -> ageInMonths >= eligibleAge
-                        "years" -> ageInMonths >= eligibleAge * 12
-                        else -> true
-                    }
-                }
+
 
                 val dosesMap = mutableMapOf<String, List<Dose>>()
                 coroutineScope {
-                    filteredVaccines.map { vaccine ->
+                    vaccines.map { vaccine ->
                         async {
                             val doses = fetchDoses(vaccine.id ?: "")
                             dosesMap[vaccine.id ?: ""] = doses
@@ -121,8 +104,10 @@ class select_vaccinePage : AppCompatActivity() {
                 }
 
                 doseMap = HashMap(dosesMap)
-                selectedVaccines = filteredVaccines
-                vaccineAdapter = VaccineAdapter(this@select_vaccinePage, filteredVaccines, dosesMap)
+                selectedVaccines = vaccines
+
+
+                vaccineAdapter = VaccineAdapter(this@select_vaccinePage, vaccines, dosesMap)
                 binding.recyclerViewVaccines.adapter = vaccineAdapter
                 binding.progressBarLoading.visibility = View.GONE
                 binding.recyclerViewVaccines.visibility = View.VISIBLE
@@ -133,6 +118,7 @@ class select_vaccinePage : AppCompatActivity() {
             }
         }
     }
+
 
     private suspend fun fetchVaccines(): List<Vaccine> = suspendCancellableCoroutine { cont ->
         databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
@@ -145,6 +131,7 @@ class select_vaccinePage : AppCompatActivity() {
             }
         })
     }
+
 
     private suspend fun fetchDoses(vaccineId: String): List<Dose> =
         suspendCancellableCoroutine { cont ->
@@ -159,26 +146,19 @@ class select_vaccinePage : AppCompatActivity() {
             })
         }
 
-    private fun calculateAgeInMonths(dob: String): Int {
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val birthDate = sdf.parse(dob)
-            val today = Calendar.getInstance()
-            val birthCal = Calendar.getInstance()
-            birthCal.time = birthDate!!
-            val years = today.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
-            val months = today.get(Calendar.MONTH) - birthCal.get(Calendar.MONTH)
-            years * 12 + months
-        } catch (e: Exception) {
-            e.printStackTrace()
-            0
-        }
-    }
-
+    /**
+     * Saves baby data + vaccine schedule structure (but without filtering or weekday schedule)
+     */
+    /**
+     * Saves baby data + automatically calculates vaccine schedule dates based on intervals
+     */
     private fun saveBabyWithSchedulesCoroutine() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         binding.loadingOverlay.visibility = View.VISIBLE
+
         val imageBase64 = babyImageUri?.let { uriToBase64(it) }
+
+
         val baby = Baby(
             fullName = fullName,
             gender = gender,
@@ -190,18 +170,51 @@ class select_vaccinePage : AppCompatActivity() {
             profileImageUrl = imageBase64
         )
 
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val birthDate = dateOfBirth?.let { sdf.parse(it) } ?: Date()
+
+
         val schedules = selectedVaccines.map { vaccine ->
             val doses = doseMap[vaccine.id] ?: emptyList()
-            var lastDate = Calendar.getInstance()
-            lastDate = getNextWeekday(lastDate, vaccine.schedule)
 
-            val doseSchedules = doses.map { dose ->
-                val intervalNum = dose.intervalNumber ?: 0
-                val intervalUnit = dose.intervalUnit ?: "days"
-                lastDate = calculateNextDoseDate(lastDate, intervalNum, intervalUnit)
-                lastDate = getNextWeekday(lastDate, vaccine.schedule)
-                val intervalText = "$intervalNum $intervalUnit"
-                BabyDoseSchedule(dose.name, intervalText, formatCalendarDate(lastDate))
+            var currentDate = birthDate // starting point for intervals
+
+            val doseSchedules = doses.mapIndexed { index, dose ->
+                // Parse interval number (ex: 1.5 months)
+                val intervalNumber = dose.intervalNumber ?: 0.0
+                val intervalUnit = dose.intervalUnit ?: "Months"
+
+
+                val intervalDays = when (intervalUnit.lowercase()) {
+                    "days" -> intervalNumber
+                    "weeks" -> intervalNumber * 7
+                    "months" -> intervalNumber * 30.4375
+                    "years" -> intervalNumber * 365
+                    else -> 0.0
+                }
+
+
+                if (index == 0) {
+                    currentDate = Calendar.getInstance().apply {
+                        time = birthDate
+                        add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
+                    }.time
+                } else {
+
+                    currentDate = Calendar.getInstance().apply {
+                        time = currentDate
+                        add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
+                    }.time
+                }
+
+                val doseDate = sdf.format(currentDate)
+
+                BabyDoseSchedule(
+                    doseName = dose.name,
+                    interval = "$intervalNumber $intervalUnit",
+                    date = doseDate
+                )
             }
 
             BabyVaccineSchedule(
@@ -210,10 +223,11 @@ class select_vaccinePage : AppCompatActivity() {
                 description = vaccine.description,
                 route = vaccine.route,
                 sideEffects = vaccine.sideEffects,
-                lastGiven = getTodayDate(),
+                lastGiven = null,
                 doses = if (vaccine.hasDosage) doseSchedules else null
             )
         }
+
 
         lifecycleScope.launch {
             try {
@@ -237,7 +251,7 @@ class select_vaccinePage : AppCompatActivity() {
                 DialogHelper.showSuccess(
                     this@select_vaccinePage,
                     "Successfully Saved",
-                    "The Baby info is successfully saved"
+                    "The baby info and schedules have been saved successfully!"
                 ) { finish() }
 
             } catch (e: Exception) {
@@ -247,47 +261,4 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-    private fun calculateNextDoseDate(
-        baseDate: Calendar,
-        intervalNumber: Int,
-        intervalUnit: String
-    ): Calendar {
-        val calendar = baseDate.clone() as Calendar
-        when (intervalUnit.lowercase()) {
-            "days" -> calendar.add(Calendar.DAY_OF_YEAR, intervalNumber)
-            "weeks" -> calendar.add(Calendar.WEEK_OF_YEAR, intervalNumber)
-            "months" -> calendar.add(Calendar.MONTH, intervalNumber)
-            "years" -> calendar.add(Calendar.YEAR, intervalNumber)
-        }
-        return calendar
-    }
-
-    private fun getNextWeekday(baseDate: Calendar, weekday: String?): Calendar {
-        if (weekday.isNullOrEmpty()) return baseDate
-        val calendar = baseDate.clone() as Calendar
-        val targetDay = when (weekday.lowercase()) {
-            "sunday" -> Calendar.SUNDAY
-            "monday" -> Calendar.MONDAY
-            "tuesday" -> Calendar.TUESDAY
-            "wednesday" -> Calendar.WEDNESDAY
-            "thursday" -> Calendar.THURSDAY
-            "friday" -> Calendar.FRIDAY
-            "saturday" -> Calendar.SATURDAY
-            else -> return calendar
-        }
-        while (calendar.get(Calendar.DAY_OF_WEEK) != targetDay) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1)
-        }
-        return calendar
-    }
-
-    private fun formatCalendarDate(calendar: Calendar): String {
-        val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-        return sdf.format(calendar.time)
-    }
-
-    private fun getTodayDate(): String {
-        val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-        return sdf.format(Date())
-    }
 }
