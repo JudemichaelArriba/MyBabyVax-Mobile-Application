@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     implementation(libs.androidx.core.ktx)
-
+    implementation("com.google.firebase:firebase-messaging:24.0.0")
     // Lifecycle
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.runtime)

@@ -178,13 +178,12 @@ class select_vaccinePage : AppCompatActivity() {
         val schedules = selectedVaccines.map { vaccine ->
             val doses = doseMap[vaccine.id] ?: emptyList()
 
-            var currentDate = birthDate // starting point for intervals
+            var currentDate = birthDate
 
             val doseSchedules = doses.mapIndexed { index, dose ->
-                // Parse interval number (ex: 1.5 months)
+
                 val intervalNumber = dose.intervalNumber ?: 0.0
                 val intervalUnit = dose.intervalUnit ?: "Months"
-
 
                 val intervalDays = when (intervalUnit.lowercase()) {
                     "days" -> intervalNumber
@@ -194,14 +193,12 @@ class select_vaccinePage : AppCompatActivity() {
                     else -> 0.0
                 }
 
-
                 if (index == 0) {
                     currentDate = Calendar.getInstance().apply {
                         time = birthDate
                         add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
                     }.time
                 } else {
-
                     currentDate = Calendar.getInstance().apply {
                         time = currentDate
                         add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
@@ -210,13 +207,15 @@ class select_vaccinePage : AppCompatActivity() {
 
                 val doseDate = sdf.format(currentDate)
 
+
                 BabyDoseSchedule(
                     doseName = dose.name,
                     interval = "$intervalNumber $intervalUnit",
-                    date = doseDate
+                    date = doseDate,
+                    isVisible = (index == 0),
+                    isCompleted = false
                 )
             }
-
             BabyVaccineSchedule(
                 vaccineName = vaccine.name,
                 vaccineType = vaccine.type,

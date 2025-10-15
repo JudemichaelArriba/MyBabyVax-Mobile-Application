@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var authServices: AuthServices
     private lateinit var binding: ActivityMainBinding
     private val myDialog = Dialogs(this)
-
+private  val DatabaseService = DatabaseService()
 
     private lateinit var sessionManager: SessionManager
 
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
                                         sessionManager.saveUser(snapshot.getValue(Users::class.java)!!)
                                         sessionManager.setGoogleLogin(true)
-
+                                        DatabaseService.saveFcmToken()
                                         binding.loadingOverlay.visibility = View.GONE
                                         DialogHelper.showSuccess(
                                             this@MainActivity,
@@ -95,6 +95,7 @@ class MainActivity : AppCompatActivity() {
                                                 sessionManager.saveUser(newUser)
                                                 sessionManager.setGoogleLogin(true)
                                                 binding.loadingOverlay.visibility = View.GONE
+
                                                 DialogHelper.showSuccess(
                                                     this@MainActivity,
                                                     "Login Successful",

@@ -1,6 +1,8 @@
 package com.example.iptfinal.interfaces
 
 import com.example.iptfinal.models.Baby
+import com.example.iptfinal.models.BabyVaccineDisplay
+import com.example.iptfinal.models.BabyVaccineSchedule
 import com.example.iptfinal.models.Users
 
 interface InterfaceClass {
@@ -32,10 +34,15 @@ interface InterfaceClass {
     }
 
 
+    interface BabiesCallback {
+        fun onBabiesLoaded(babies: List<Baby>)
+        fun onError(message: String?)
+    }
 
-        interface BabiesCallback {
-            fun onBabiesLoaded(babies: List<Baby>)
-            fun onError(message: String?)
-        }
+
+    interface BabyVaccineDisplayCallback {
+        fun onSchedulesLoaded(list: List<BabyVaccineDisplay>)
+        fun onError(error: String)
+    }
 
 }
