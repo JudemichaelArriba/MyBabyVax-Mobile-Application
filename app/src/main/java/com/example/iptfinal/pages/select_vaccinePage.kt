@@ -146,9 +146,7 @@ class select_vaccinePage : AppCompatActivity() {
             })
         }
 
-    /**
-     * Saves baby data + vaccine schedule structure (but without filtering or weekday schedule)
-     */
+
     /**
      * Saves baby data + automatically calculates vaccine schedule dates based on intervals
      */
@@ -157,7 +155,6 @@ class select_vaccinePage : AppCompatActivity() {
         binding.loadingOverlay.visibility = View.VISIBLE
 
         val imageBase64 = babyImageUri?.let { uriToBase64(it) }
-
 
         val baby = Baby(
             fullName = fullName,
@@ -170,18 +167,21 @@ class select_vaccinePage : AppCompatActivity() {
             profileImageUrl = imageBase64
         )
 
-
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val birthDate = dateOfBirth?.let { sdf.parse(it) } ?: Date()
 
+        val cal = Calendar.getInstance()
+        cal.time = birthDate
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
 
         val schedules = selectedVaccines.map { vaccine ->
             val doses = doseMap[vaccine.id] ?: emptyList()
-
-            var currentDate = birthDate
+            var currentDate = cal.time
 
             val doseSchedules = doses.mapIndexed { index, dose ->
-
                 val intervalNumber = dose.intervalNumber ?: 0.0
                 val intervalUnit = dose.intervalUnit ?: "Months"
 
@@ -193,20 +193,12 @@ class select_vaccinePage : AppCompatActivity() {
                     else -> 0.0
                 }
 
-                if (index == 0) {
-                    currentDate = Calendar.getInstance().apply {
-                        time = birthDate
-                        add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
-                    }.time
-                } else {
-                    currentDate = Calendar.getInstance().apply {
-                        time = currentDate
-                        add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
-                    }.time
-                }
+                val doseCal = Calendar.getInstance()
+                doseCal.time = currentDate
+                doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
+                currentDate = doseCal.time
 
                 val doseDate = sdf.format(currentDate)
-
 
                 BabyDoseSchedule(
                     doseName = dose.name,
@@ -216,6 +208,7 @@ class select_vaccinePage : AppCompatActivity() {
                     isCompleted = false
                 )
             }
+
             BabyVaccineSchedule(
                 vaccineName = vaccine.name,
                 vaccineType = vaccine.type,
@@ -226,7 +219,6 @@ class select_vaccinePage : AppCompatActivity() {
                 doses = if (vaccine.hasDosage) doseSchedules else null
             )
         }
-
 
         lifecycleScope.launch {
             try {
@@ -259,5 +251,6 @@ class select_vaccinePage : AppCompatActivity() {
             }
         }
     }
+
 
 }
