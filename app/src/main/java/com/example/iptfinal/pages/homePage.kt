@@ -64,6 +64,8 @@ class homePage : Fragment() {
         } else {
             "Username"
         }
+
+
         binding.username.text = username
 
         if (user.profilePic.isNotEmpty()) {
@@ -164,7 +166,7 @@ class homePage : Fragment() {
 
     private fun updateNotificationBadge() {
         val count = NotificationManagerHelper.getCount(requireContext())
-        Log.d("notifdevug","Notification count = $count")
+        Log.d("notifdevug", "Notification count = $count")
         if (count > 0) {
             binding.notificationBadge.visibility = View.VISIBLE
             binding.notificationBadge.text = count.toString()
