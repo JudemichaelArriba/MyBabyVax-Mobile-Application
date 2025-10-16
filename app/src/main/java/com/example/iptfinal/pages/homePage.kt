@@ -2,6 +2,7 @@ package com.example.iptfinal.pages
 
 import android.view.View
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import kotlin.coroutines.resumeWithException
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.iptfinal.adapters.ScheduleAdapter
+import com.example.iptfinal.services.NotificationManagerHelper
 
 class homePage : Fragment() {
 
@@ -49,6 +51,13 @@ class homePage : Fragment() {
         auth = FirebaseAuth.getInstance()
         val sessionManager = SessionManager(requireContext())
         val user: Users = sessionManager.getUser()
+
+
+        binding.notificationIcon.setOnClickListener {
+            NotificationManagerHelper.clearCount(requireContext())
+            updateNotificationBadge()
+
+        }
 
         val username = if (user.firstname.isNotEmpty() || user.lastname.isNotEmpty()) {
             "${user.firstname} ${user.lastname}"
@@ -152,8 +161,25 @@ class homePage : Fragment() {
             )
         }
 
+
+    private fun updateNotificationBadge() {
+        val count = NotificationManagerHelper.getCount(requireContext())
+        Log.d("notifdevug","Notification count = $count")
+        if (count > 0) {
+            binding.notificationBadge.visibility = View.VISIBLE
+            binding.notificationBadge.text = count.toString()
+        } else {
+            binding.notificationBadge.visibility = View.GONE
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateNotificationBadge()
     }
 }

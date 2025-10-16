@@ -13,6 +13,8 @@ class MyFirebaseService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         remoteMessage.notification?.let {
+
+            NotificationManagerHelper.incrementCount(applicationContext)
             showNotification(it.title ?: "Vaccine Reminder", it.body ?: "")
         }
     }
