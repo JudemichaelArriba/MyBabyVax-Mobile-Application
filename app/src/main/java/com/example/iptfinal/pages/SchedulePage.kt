@@ -60,7 +60,7 @@ class SchedulePage : AppCompatActivity() {
                 scheduleAdapter = ScheduleAdapter(schedules)
                 binding.recyclerView.adapter = scheduleAdapter
             } catch (e: Exception) {
-                Toast.makeText(this@SchedulePage, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+
             } finally {
                 binding.loading.visibility = View.GONE
             }
