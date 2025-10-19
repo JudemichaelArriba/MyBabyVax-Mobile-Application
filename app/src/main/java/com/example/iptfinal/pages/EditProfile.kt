@@ -75,11 +75,11 @@ class EditProfile : AppCompatActivity() {
                     binding.mobileTv.setText(input)
                     binding.mobileTv.setSelection(input.length)
                 }
-                if (input.length > 10) {
-                    input = input.substring(0, 10)
+                if (input.length > 12) {
+                    input = input.substring(0, 12)
                     binding.mobileTv.setText(input)
-                    binding.mobileTv.setSelection(10)
-                
+                    binding.mobileTv.setSelection(12)
+
                 }
             }
 

@@ -5,8 +5,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
-import android.widget.ArrayAdapter
+import com.hbb20.CountryCodePicker
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -25,12 +24,11 @@ import com.google.firebase.database.FirebaseDatabase
 class signup : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignupBinding
-    val dbService = DatabaseService()
+    private val dbService = DatabaseService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -46,9 +44,35 @@ class signup : AppCompatActivity() {
             insets
         }
 
+
+        val ccp: CountryCodePicker = binding.countryCodePicker
+        ccp.setCountryForNameCode("PH")
+        ccp.setAutoDetectedCountry(true)
+        ccp.registerCarrierNumberEditText(binding.mobileNumber)
+
+        binding.mobileNumber.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                var input = s.toString()
+                if (input.startsWith("0")) {
+                    input = input.drop(1)
+                    binding.mobileNumber.setText(input)
+                    binding.mobileNumber.setSelection(input.length)
+                }
+                if (input.length > 12) {
+                    input = input.substring(0, 12)
+                    binding.mobileNumber.setText(input)
+                    binding.mobileNumber.setSelection(12)
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+
         dbService.fetchPuroks(object : InterfaceClass.PurokCallback {
             override fun onPuroksLoaded(puroks: List<String>) {
-                val adapter = ArrayAdapter(
+                val adapter = android.widget.ArrayAdapter(
                     this@signup,
                     android.R.layout.simple_spinner_item,
                     puroks
@@ -63,6 +87,7 @@ class signup : AppCompatActivity() {
             }
         })
 
+
         binding.emailTxt.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -72,15 +97,19 @@ class signup : AppCompatActivity() {
                         getColor(com.google.android.material.R.color.design_default_color_error)
                     binding.emailLayout.helperText = "Invalid email"
                     binding.emailLayout.setHelperTextColor(
-                        ColorStateList.valueOf(getColor(com.google.android.material.R.color.design_default_color_error))
+                        ColorStateList.valueOf(
+                            getColor(com.google.android.material.R.color.design_default_color_error)
+                        )
                     )
                 } else {
                     binding.emailLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.emailLayout.helperText = ""
                 }
             }
+
             override fun afterTextChanged(s: Editable?) {}
         })
+
 
         binding.confirmPasswordEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -91,24 +120,28 @@ class signup : AppCompatActivity() {
                         getColor(com.google.android.material.R.color.design_default_color_error)
                     binding.ConfirmPasswordInputLayout.helperText = "Password did not match"
                     binding.ConfirmPasswordInputLayout.setHelperTextColor(
-                        ColorStateList.valueOf(getColor(com.google.android.material.R.color.design_default_color_error))
+                        ColorStateList.valueOf(
+                            getColor(com.google.android.material.R.color.design_default_color_error)
+                        )
                     )
                 } else {
                     binding.ConfirmPasswordInputLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.ConfirmPasswordInputLayout.helperText = ""
                 }
             }
+
             override fun afterTextChanged(s: Editable?) {}
         })
+
 
         binding.signupBtn.setOnClickListener {
             val firstname = binding.firstname.text.toString().trim()
             val lastname = binding.lastname.text.toString().trim()
             val email = binding.emailTxt.text.toString().trim()
             val password = binding.passwordEditText.text.toString().trim()
-            val mobileNum = binding.mobileNumber.text.toString().trim()
             val address = binding.purokDropdown.text.toString().trim()
             val confirmPass = binding.confirmPasswordEditText.text.toString().trim()
+            val fullMobileNum = "+" + ccp.fullNumber.trim()
 
             if (email.isEmpty() || password.isEmpty() || firstname.isEmpty() || lastname.isEmpty()) {
                 DialogHelper.showWarning(this, "Warning", "Please fill all required fields")
@@ -116,7 +149,11 @@ class signup : AppCompatActivity() {
             }
 
             if (confirmPass != password) {
-                DialogHelper.showWarning(this, "Warning", "Password and confirm password did not match")
+                DialogHelper.showWarning(
+                    this,
+                    "Warning",
+                    "Password and confirm password did not match"
+                )
                 return@setOnClickListener
             }
 
@@ -134,19 +171,34 @@ class signup : AppCompatActivity() {
 
                     if (dbFirstname.equals(firstname, ignoreCase = true)) sameFirstName = true
                     if (dbLastname.equals(lastname, ignoreCase = true)) sameLastName = true
-                    if (dbMobile == mobileNum) sameMobile = true
+                    if (dbMobile == fullMobileNum) sameMobile = true
                 }
 
                 when {
                     sameFirstName && sameLastName && sameMobile -> {
-                        DialogHelper.showWarning(this, "Warning", "A user with the same name and contact number already exists")
+                        DialogHelper.showWarning(
+                            this,
+                            "Warning",
+                            "A user with the same name and contact number already exists"
+                        )
                     }
+
                     sameFirstName && sameLastName -> {
-                        DialogHelper.showWarning(this, "Warning", "A user with the same name already exists")
+                        DialogHelper.showWarning(
+                            this,
+                            "Warning",
+                            "A user with the same name already exists"
+                        )
                     }
+
                     sameMobile -> {
-                        DialogHelper.showWarning(this, "Warning", "This contact number is already registered")
+                        DialogHelper.showWarning(
+                            this,
+                            "Warning",
+                            "This contact number is already registered"
+                        )
                     }
+
                     else -> {
                         val authServices = AuthServices(this@signup)
                         authServices.signUpWithEmail(email, password) { user, error ->
@@ -159,15 +211,14 @@ class signup : AppCompatActivity() {
                                         lastname = lastname,
                                         email = firebaseUser.email ?: "",
                                         address = address,
-                                        mobileNum = mobileNum,
+                                        mobileNum = fullMobileNum,
                                         profilePic = "",
                                         role = "User"
                                     )
                                     database.child(firebaseUser.uid).setValue(newUser)
                                 }
                                 DialogHelper.showSuccess(this, "Success", "Sign up successful!") {
-                                    val intent = Intent(this@signup, MainActivity::class.java)
-                                    startActivity(intent)
+                                    startActivity(Intent(this@signup, MainActivity::class.java))
                                     finish()
                                 }
                             } else {
@@ -182,8 +233,7 @@ class signup : AppCompatActivity() {
         }
 
         binding.toLoginBtn.setOnClickListener {
-            val intent: Intent = Intent(this@signup, MainActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this@signup, MainActivity::class.java))
             finish()
         }
     }
