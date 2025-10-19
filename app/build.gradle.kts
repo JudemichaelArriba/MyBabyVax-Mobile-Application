@@ -80,7 +80,7 @@ dependencies {
 
     implementation(libs.firebase.database)
 
-    implementation("com.hbb20:ccp:2.5.2")
+    implementation("com.hbb20:ccp:2.7.3")
 
 
 //    implementation("com.google.android.gms:play-services-auth:21.4.0")
