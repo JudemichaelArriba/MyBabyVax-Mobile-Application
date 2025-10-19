@@ -201,6 +201,7 @@ class EditProfile : AppCompatActivity() {
                 "Update Profile",
                 "Are you sure you want to save these changes?",
                 onConfirm = {
+                    binding.loadingOverlay.visibility = android.view.View.VISIBLE
                     if (selectedImageUri != null) {
                         val inputStream = contentResolver.openInputStream(selectedImageUri!!)
                         val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
@@ -218,6 +219,7 @@ class EditProfile : AppCompatActivity() {
                             object : InterfaceClass.StatusCallback {
                                 override fun onSuccess(message: String) {
                                     sessionManager.saveUser(updatedUserWithImage)
+                                    binding.loadingOverlay.visibility = android.view.View.GONE
                                     DialogHelper.showSuccess(
                                         this@EditProfile,
                                         "Success",
@@ -226,6 +228,7 @@ class EditProfile : AppCompatActivity() {
                                 }
 
                                 override fun onError(message: String) {
+                                    binding.loadingOverlay.visibility = android.view.View.GONE
                                     DialogHelper.showError(this@EditProfile, "Error", message)
                                 }
                             })

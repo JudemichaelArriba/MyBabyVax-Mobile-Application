@@ -97,5 +97,23 @@ class DialogHelper {
             dialog.show()
             enlargeButtons(dialog)
         }
+
+        fun showWarningOk(
+            context: Context,
+            title: String,
+            message: String,
+            onConfirm: (() -> Unit)? = null
+        ) {
+            val dialog = KAlertDialog(context, KAlertDialog.WARNING_TYPE)
+                .setTitleText(title)
+                .setContentText(message)
+                .setConfirmText("OK")
+                .setConfirmClickListener { d ->
+                    d.dismissWithAnimation()
+                    onConfirm?.invoke()
+                }
+            dialog.show()
+            enlargeButtons(dialog)
+        }
     }
 }

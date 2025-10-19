@@ -156,7 +156,7 @@ class signup : AppCompatActivity() {
                 )
                 return@setOnClickListener
             }
-
+            binding.loadingOverlay.visibility = android.view.View.VISIBLE
             val database = FirebaseDatabase.getInstance().getReference("users")
 
             database.get().addOnSuccessListener { snapshot ->
@@ -176,6 +176,7 @@ class signup : AppCompatActivity() {
 
                 when {
                     sameFirstName && sameLastName && sameMobile -> {
+                        binding.loadingOverlay.visibility = android.view.View.GONE
                         DialogHelper.showWarning(
                             this,
                             "Warning",
@@ -184,6 +185,7 @@ class signup : AppCompatActivity() {
                     }
 
                     sameFirstName && sameLastName -> {
+                        binding.loadingOverlay.visibility = android.view.View.GONE
                         DialogHelper.showWarning(
                             this,
                             "Warning",
@@ -192,7 +194,8 @@ class signup : AppCompatActivity() {
                     }
 
                     sameMobile -> {
-                        DialogHelper.showWarning(
+                        binding.loadingOverlay.visibility = android.view.View.GONE
+                        DialogHelper.showWarningOk(
                             this,
                             "Warning",
                             "This contact number is already registered"
@@ -202,6 +205,7 @@ class signup : AppCompatActivity() {
                     else -> {
                         val authServices = AuthServices(this@signup)
                         authServices.signUpWithEmail(email, password) { user, error ->
+                            binding.loadingOverlay.visibility = android.view.View.GONE
                             if (user != null) {
                                 val firebaseUser = FirebaseAuth.getInstance().currentUser
                                 if (firebaseUser != null) {
@@ -228,7 +232,8 @@ class signup : AppCompatActivity() {
                     }
                 }
             }.addOnFailureListener {
-                DialogHelper.showError(this, "Error", "Error checking existing users")
+                binding.loadingOverlay.visibility = android.view.View.GONE
+                DialogHelper.showWarningOk(this, "Error", "Error checking existing users")
             }
         }
 
