@@ -15,13 +15,14 @@ import com.example.iptfinal.databinding.FragmentProfilePageBinding
 import com.example.iptfinal.services.AuthServices
 
 import com.example.iptfinal.components.DialogHelper
+import com.example.iptfinal.services.DatabaseService
 import com.example.iptfinal.services.SessionManager
 
 class profilePage : Fragment() {
 
     private var _binding: FragmentProfilePageBinding? = null
     private val binding get() = _binding!!
-
+private val DatabaseService = DatabaseService()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -96,6 +97,7 @@ class profilePage : Fragment() {
                 "Logout",
                 "Are you sure you want to log out?",
                 onConfirm = {
+                    DatabaseService.clearFcmTokenOnLogout()
                     AuthServices(requireContext()).signOut()
                     sessionManager.clearSession()
                     val intent = Intent(requireActivity(), MainActivity::class.java)

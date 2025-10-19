@@ -15,6 +15,7 @@ import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.*
 import com.example.iptfinal.services.DatabaseService
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -167,61 +168,99 @@ class select_vaccinePage : AppCompatActivity() {
             profileImageUrl = imageBase64
         )
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val birthDate = dateOfBirth?.let { sdf.parse(it) } ?: Date()
+        val userBabiesRef = FirebaseDatabase.getInstance().getReference("users")
+            .child(userId)
+            .child("babies")
 
-        val cal = Calendar.getInstance()
-        cal.time = birthDate
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
 
-        val schedules = selectedVaccines.map { vaccine ->
-            val doses = doseMap[vaccine.id] ?: emptyList()
-            var currentDate = cal.time
+        userBabiesRef.get().addOnSuccessListener { snapshot ->
+            var duplicate = false
+            for (babySnap in snapshot.children) {
+                val existingName = babySnap.child("fullName").value?.toString()?.trim() ?: ""
+                val existingDob = babySnap.child("dateOfBirth").value?.toString()?.trim() ?: ""
 
-            val doseSchedules = doses.mapIndexed { index, dose ->
-                val intervalNumber = dose.intervalNumber ?: 0.0
-                val intervalUnit = dose.intervalUnit ?: "Months"
-
-                val intervalDays = when (intervalUnit.lowercase()) {
-                    "days" -> intervalNumber
-                    "weeks" -> intervalNumber * 7
-                    "months" -> intervalNumber * 30.4375
-                    "years" -> intervalNumber * 365
-                    else -> 0.0
+                if (existingName.equals(
+                        fullName,
+                        ignoreCase = true
+                    ) && existingDob == dateOfBirth
+                ) {
+                    duplicate = true
+                    break
                 }
-
-                val doseCal = Calendar.getInstance()
-                doseCal.time = currentDate
-                doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
-                currentDate = doseCal.time
-
-                val doseDate = sdf.format(currentDate)
-
-                BabyDoseSchedule(
-                    doseName = dose.name,
-                    interval = "$intervalNumber $intervalUnit",
-                    date = doseDate,
-                    isVisible = (index == 0),
-                    isCompleted = false
-                )
             }
 
-            BabyVaccineSchedule(
-                vaccineName = vaccine.name,
-                vaccineType = vaccine.type,
-                description = vaccine.description,
-                route = vaccine.route,
-                sideEffects = vaccine.sideEffects,
-                lastGiven = null,
-                doses = if (vaccine.hasDosage) doseSchedules else null
+            if (duplicate) {
+                binding.loadingOverlay.visibility = View.GONE
+                DialogHelper.showError(
+                    this@select_vaccinePage,
+                    "Duplicate Baby",
+                    "A baby with the same name and birth date already exists."
+                )
+                return@addOnSuccessListener
+            }
+
+
+            saveBabyAndScheduleToDatabase(userId, baby)
+        }.addOnFailureListener {
+            binding.loadingOverlay.visibility = View.GONE
+            DialogHelper.showError(
+                this@select_vaccinePage,
+                "Error",
+                "Failed to check existing babies."
             )
         }
+    }
 
+    private fun saveBabyAndScheduleToDatabase(userId: String, baby: Baby) {
         lifecycleScope.launch {
             try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val birthDate = sdf.parse(baby.dateOfBirth!!) ?: Date()
+                val cal = Calendar.getInstance()
+                cal.time = birthDate
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+
+                val schedules = selectedVaccines.map { vaccine ->
+                    val doses = doseMap[vaccine.id] ?: emptyList()
+                    var currentDate = cal.time
+
+                    val doseSchedules = doses.mapIndexed { index, dose ->
+                        val intervalDays = when (dose.intervalUnit?.lowercase()) {
+                            "days" -> dose.intervalNumber ?: 0.0
+                            "weeks" -> (dose.intervalNumber ?: 0.0) * 7
+                            "months" -> (dose.intervalNumber ?: 0.0) * 30.4375
+                            "years" -> (dose.intervalNumber ?: 0.0) * 365
+                            else -> 0.0
+                        }
+
+                        val doseCal = Calendar.getInstance()
+                        doseCal.time = currentDate
+                        doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
+                        currentDate = doseCal.time
+
+                        BabyDoseSchedule(
+                            doseName = dose.name,
+                            interval = "${dose.intervalNumber} ${dose.intervalUnit}",
+                            date = sdf.format(currentDate),
+                            isVisible = (index == 0),
+                            isCompleted = false
+                        )
+                    }
+
+                    BabyVaccineSchedule(
+                        vaccineName = vaccine.name,
+                        vaccineType = vaccine.type,
+                        description = vaccine.description,
+                        route = vaccine.route,
+                        sideEffects = vaccine.sideEffects,
+                        lastGiven = null,
+                        doses = if (vaccine.hasDosage) doseSchedules else null
+                    )
+                }
+
                 withContext(Dispatchers.IO) {
                     suspendCancellableCoroutine<Unit> { cont ->
                         databaseService.addBabyWithSchedule(

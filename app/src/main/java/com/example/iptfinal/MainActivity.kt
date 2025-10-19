@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var authServices: AuthServices
     private lateinit var binding: ActivityMainBinding
     private val myDialog = Dialogs(this)
-private  val DatabaseService = DatabaseService()
+    private val DatabaseService = DatabaseService()
 
     private lateinit var sessionManager: SessionManager
 
@@ -72,7 +72,8 @@ private  val DatabaseService = DatabaseService()
                                             "Login Successful",
                                             "Welcome back ${username}!"
                                         ) {
-                                            val intent = Intent(this@MainActivity, bottomNav::class.java)
+                                            val intent =
+                                                Intent(this@MainActivity, bottomNav::class.java)
                                             startActivity(intent)
                                             finish()
                                         }
@@ -94,6 +95,7 @@ private  val DatabaseService = DatabaseService()
                                             .addOnSuccessListener {
                                                 sessionManager.saveUser(newUser)
                                                 sessionManager.setGoogleLogin(true)
+                                                DatabaseService.saveFcmToken()
                                                 binding.loadingOverlay.visibility = View.GONE
 
                                                 DialogHelper.showSuccess(
@@ -102,7 +104,10 @@ private  val DatabaseService = DatabaseService()
                                                     "Welcome ${username}!"
                                                 ) {
                                                     val intent =
-                                                        Intent(this@MainActivity, bottomNav::class.java)
+                                                        Intent(
+                                                            this@MainActivity,
+                                                            bottomNav::class.java
+                                                        )
                                                     startActivity(intent)
                                                     finish()
                                                 }
@@ -198,17 +203,22 @@ private  val DatabaseService = DatabaseService()
                             if (userData.role == "User") {
                                 sessionManager.saveUser(userData)
                                 sessionManager.setGoogleLogin(false)
+                                DatabaseService.saveFcmToken()
 
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    "Welcome ${userData.firstname}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
 
                                 binding.loadingOverlay.visibility = View.GONE
-                                val intent = Intent(this@MainActivity, bottomNav::class.java)
-                                startActivity(intent)
-                                finish()
+                                DialogHelper.showSuccess(
+                                    this@MainActivity,
+                                    "Login Successful",
+                                    "Welcome back!"
+                                ) {
+                                    val intent = Intent(this@MainActivity, bottomNav::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+//                                val intent = Intent(this@MainActivity, bottomNav::class.java)
+//                                startActivity(intent)
+//                                finish()
 
                             } else {
 

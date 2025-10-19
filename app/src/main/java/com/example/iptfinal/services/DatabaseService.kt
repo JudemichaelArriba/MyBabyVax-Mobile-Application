@@ -66,7 +66,16 @@ class DatabaseService {
     }
 
     fun updateUser(uid: String, updatedUser: Users, callback: InterfaceClass.StatusCallback) {
-        databaseUsers.child(uid).setValue(updatedUser)
+        val updates = mutableMapOf<String, Any?>()
+
+        updates["firstname"] = updatedUser.firstname
+        updates["lastname"] = updatedUser.lastname
+        updates["email"] = updatedUser.email
+        updates["address"] = updatedUser.address
+        updates["mobileNum"] = updatedUser.mobileNum
+        updates["profilePic"] = updatedUser.profilePic
+
+        databaseUsers.child(uid).updateChildren(updates)
             .addOnSuccessListener {
                 callback.onSuccess("Profile updated successfully")
             }
@@ -187,9 +196,6 @@ class DatabaseService {
     }
 
 
-
-
-
     fun fetchAllBabyVaccineSchedules(
         userId: String,
         callback: InterfaceClass.BabyVaccineDisplayCallback
@@ -242,7 +248,6 @@ class DatabaseService {
     }
 
 
-
     fun saveFcmToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
@@ -260,9 +265,11 @@ class DatabaseService {
     }
 
 
-
-
-
+    fun clearFcmTokenOnLogout() {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseDatabase.getInstance().getReference("users")
+        db.child(user.uid).child("fcmToken").removeValue()
+    }
 
 
 }

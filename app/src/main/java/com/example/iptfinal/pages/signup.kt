@@ -7,14 +7,13 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.iptfinal.MainActivity
 import com.example.iptfinal.R
-import com.example.iptfinal.databinding.ActivityMainBinding
+import com.example.iptfinal.components.DialogHelper
 import com.example.iptfinal.databinding.ActivitySignupBinding
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Users
@@ -25,10 +24,8 @@ import com.google.firebase.database.FirebaseDatabase
 
 class signup : AppCompatActivity() {
 
-
     private lateinit var binding: ActivitySignupBinding
     val dbService = DatabaseService()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +46,6 @@ class signup : AppCompatActivity() {
             insets
         }
 
-
         dbService.fetchPuroks(object : InterfaceClass.PurokCallback {
             override fun onPuroksLoaded(puroks: List<String>) {
                 val adapter = ArrayAdapter(
@@ -60,33 +56,18 @@ class signup : AppCompatActivity() {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.purokDropdown.setAdapter(adapter)
                 binding.purokDropdown.setTextColor(getColor(R.color.mainColor))
-                if (!adapter.isEmpty) {
-                    for (i in 0 until adapter.count) {
-                        val item = adapter.getItem(i)
-                        Log.d("SignupLog", "Item $i: $item")
-                    }
-                } else {
-                    Log.d("SignupLog", "Adapter is empty")
-                }
             }
 
             override fun onError(message: String) {
-                Toast.makeText(this@signup, "Failed to load puroks: $message", Toast.LENGTH_SHORT)
-                    .show()
+                DialogHelper.showError(this@signup, "Error", "Failed to load puroks: $message")
             }
         })
 
-
-
         binding.emailTxt.addTextChangedListener(object : TextWatcher {
-
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val email = s.toString()
                 if (!isValidEmail(email)) {
-
                     binding.emailLayout.boxStrokeColor =
                         getColor(com.google.android.material.R.color.design_default_color_error)
                     binding.emailLayout.helperText = "Invalid email"
@@ -94,28 +75,18 @@ class signup : AppCompatActivity() {
                         ColorStateList.valueOf(getColor(com.google.android.material.R.color.design_default_color_error))
                     )
                 } else {
-
                     binding.emailLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.emailLayout.helperText = ""
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {}
-
         })
 
-
-
-
         binding.confirmPasswordEditText.addTextChangedListener(object : TextWatcher {
-
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val confirmPass = s.toString()
                 if (confirmPass != binding.passwordEditText.text.toString().trim()) {
-
                     binding.ConfirmPasswordInputLayout.boxStrokeColor =
                         getColor(com.google.android.material.R.color.design_default_color_error)
                     binding.ConfirmPasswordInputLayout.helperText = "Password did not match"
@@ -123,14 +94,11 @@ class signup : AppCompatActivity() {
                         ColorStateList.valueOf(getColor(com.google.android.material.R.color.design_default_color_error))
                     )
                 } else {
-
                     binding.ConfirmPasswordInputLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.ConfirmPasswordInputLayout.helperText = ""
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {}
-
         })
 
         binding.signupBtn.setOnClickListener {
@@ -141,62 +109,82 @@ class signup : AppCompatActivity() {
             val mobileNum = binding.mobileNumber.text.toString().trim()
             val address = binding.purokDropdown.text.toString().trim()
             val confirmPass = binding.confirmPasswordEditText.text.toString().trim()
+
             if (email.isEmpty() || password.isEmpty() || firstname.isEmpty() || lastname.isEmpty()) {
-                Toast.makeText(this@signup, "Please fill all required fields", Toast.LENGTH_SHORT)
-                    .show()
+                DialogHelper.showWarning(this, "Warning", "Please fill all required fields")
                 return@setOnClickListener
             }
+
             if (confirmPass != password) {
-                Toast.makeText(
-                    this@signup,
-                    "Password and confirm password did not match",
-                    Toast.LENGTH_SHORT
-                ).show()
+                DialogHelper.showWarning(this, "Warning", "Password and confirm password did not match")
                 return@setOnClickListener
             }
-            val authServices = AuthServices(this@signup)
 
+            val database = FirebaseDatabase.getInstance().getReference("users")
 
-            authServices.signUpWithEmail(email, password) { user, error ->
-                if (user != null) {
+            database.get().addOnSuccessListener { snapshot ->
+                var sameFirstName = false
+                var sameLastName = false
+                var sameMobile = false
 
-                    val firebaseUser = FirebaseAuth.getInstance().currentUser
-                    if (firebaseUser != null) {
-                        val user = Users(
-                            uid = firebaseUser.uid,
-                            firstname = firstname,
-                            lastname = lastname,
-                            email = firebaseUser.email ?: "",
-                            address = address,
-                            mobileNum = mobileNum,
-                            profilePic = "",
-                            role = "User"
+                for (userSnap in snapshot.children) {
+                    val dbFirstname = userSnap.child("firstname").value?.toString()?.trim() ?: ""
+                    val dbLastname = userSnap.child("lastname").value?.toString()?.trim() ?: ""
+                    val dbMobile = userSnap.child("mobileNum").value?.toString()?.trim() ?: ""
 
-                        )
-                        val database = FirebaseDatabase.getInstance()
-                        database.getReference("users")
-                            .child(firebaseUser.uid)
-                            .setValue(user)
-                    }
-
-
-                    Toast.makeText(this@signup, "Sign up successful!", Toast.LENGTH_SHORT).show()
-
-
-                } else {
-                    Toast.makeText(this@signup, "Error: $error", Toast.LENGTH_SHORT).show()
+                    if (dbFirstname.equals(firstname, ignoreCase = true)) sameFirstName = true
+                    if (dbLastname.equals(lastname, ignoreCase = true)) sameLastName = true
+                    if (dbMobile == mobileNum) sameMobile = true
                 }
+
+                when {
+                    sameFirstName && sameLastName && sameMobile -> {
+                        DialogHelper.showWarning(this, "Warning", "A user with the same name and contact number already exists")
+                    }
+                    sameFirstName && sameLastName -> {
+                        DialogHelper.showWarning(this, "Warning", "A user with the same name already exists")
+                    }
+                    sameMobile -> {
+                        DialogHelper.showWarning(this, "Warning", "This contact number is already registered")
+                    }
+                    else -> {
+                        val authServices = AuthServices(this@signup)
+                        authServices.signUpWithEmail(email, password) { user, error ->
+                            if (user != null) {
+                                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                                if (firebaseUser != null) {
+                                    val newUser = Users(
+                                        uid = firebaseUser.uid,
+                                        firstname = firstname,
+                                        lastname = lastname,
+                                        email = firebaseUser.email ?: "",
+                                        address = address,
+                                        mobileNum = mobileNum,
+                                        profilePic = "",
+                                        role = "User"
+                                    )
+                                    database.child(firebaseUser.uid).setValue(newUser)
+                                }
+                                DialogHelper.showSuccess(this, "Success", "Sign up successful!") {
+                                    val intent = Intent(this@signup, MainActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                            } else {
+                                DialogHelper.showError(this, "Error", error ?: "Unknown error")
+                            }
+                        }
+                    }
+                }
+            }.addOnFailureListener {
+                DialogHelper.showError(this, "Error", "Error checking existing users")
             }
         }
 
-
         binding.toLoginBtn.setOnClickListener {
-
             val intent: Intent = Intent(this@signup, MainActivity::class.java)
             startActivity(intent)
             finish()
-
-
         }
     }
 
