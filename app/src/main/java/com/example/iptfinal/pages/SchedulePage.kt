@@ -1,6 +1,8 @@
 package com.example.iptfinal.pages
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,8 +12,6 @@ import com.example.iptfinal.models.BabyVaccineDisplay
 import com.example.iptfinal.services.DatabaseService
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.google.firebase.auth.FirebaseAuth
-import android.view.View
-import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,6 +19,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class SchedulePage : AppCompatActivity() {
+
     private lateinit var binding: ActivitySchedulePageBinding
     private val databaseService = DatabaseService()
     private lateinit var scheduleAdapter: ScheduleAdapter
@@ -53,16 +54,38 @@ class SchedulePage : AppCompatActivity() {
             return
         }
 
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                binding.loading.visibility = View.VISIBLE
-                val schedules = fetchSchedules(currentUserId)
-                scheduleAdapter = ScheduleAdapter(schedules)
-                binding.recyclerView.adapter = scheduleAdapter
-            } catch (e: Exception) {
+                launch(Dispatchers.Main) { binding.loading.visibility = View.VISIBLE }
 
-            } finally {
-                binding.loading.visibility = View.GONE
+                val allSchedules = fetchSchedules(currentUserId)
+
+
+                val notCompletedSchedules = allSchedules.filter { !it.isCompleted }
+
+                launch(Dispatchers.Main) {
+                    if (notCompletedSchedules.isEmpty()) {
+                        Toast.makeText(
+                            this@SchedulePage,
+                            "All vaccines are completed!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    scheduleAdapter = ScheduleAdapter(notCompletedSchedules)
+                    binding.recyclerView.adapter = scheduleAdapter
+                    binding.loading.visibility = View.GONE
+                }
+
+            } catch (e: Exception) {
+                launch(Dispatchers.Main) {
+                    binding.loading.visibility = View.GONE
+                    Toast.makeText(
+                        this@SchedulePage,
+                        e.message ?: "Error loading schedules",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
