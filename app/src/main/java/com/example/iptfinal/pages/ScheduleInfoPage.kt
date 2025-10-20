@@ -142,6 +142,7 @@ class ScheduleInfoPage : AppCompatActivity() {
                 cameraProvider?.bindToLifecycle(
                     this, cameraSelector, preview, analyzer
                 )
+
             } catch (e: Exception) {
                 Log.e("CameraX", "Binding failed", e)
             }
@@ -159,11 +160,19 @@ class ScheduleInfoPage : AppCompatActivity() {
             scanner.process(image)
                 .addOnSuccessListener { barcodes ->
                     if (barcodes.isNotEmpty()) {
+                        runOnUiThread {
+                            binding.darkOverlay.visibility = View.VISIBLE
+                            binding.qrLoading.visibility = View.VISIBLE
+                        }
                         val qrData = barcodes.first().rawValue
                         if (qrData != null) {
                             handleQRData(qrData)
                             cameraProvider?.unbindAll()
                         }
+                        binding.qrCode.postDelayed({
+                            binding.darkOverlay.visibility = View.GONE
+                            binding.qrLoading.visibility = View.GONE
+                        }, 1500)
                     }
                 }
                 .addOnFailureListener { e ->
@@ -219,6 +228,10 @@ class ScheduleInfoPage : AppCompatActivity() {
                                 Toast.LENGTH_LONG
                             ).show()
                         }
+                    } finally {
+
+                        binding.darkOverlay.visibility = View.GONE
+                        binding.qrLoading.visibility = View.GONE
                     }
                 }
             } else {
