@@ -45,4 +45,9 @@ interface InterfaceClass {
         fun onError(error: String)
     }
 
+    interface BabyCallback {
+        fun onBabyLoaded(baby: Baby)
+        fun onError(message: String)
+    }
+
 }

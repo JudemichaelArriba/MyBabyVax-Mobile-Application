@@ -210,17 +210,19 @@ class DatabaseService {
                     val baby = babySnap.getValue(Baby::class.java)
                     if (baby == null) continue
 
+                    val babyId = babySnap.key ?: continue
                     val schedulesSnap = babySnap.child("schedules")
+
                     for (vaccineSnap in schedulesSnap.children) {
                         val vaccine = vaccineSnap.getValue(BabyVaccineSchedule::class.java)
                         if (vaccine == null) continue
-
 
                         val dosesSnap = vaccineSnap.child("doses")
                         for (doseSnap in dosesSnap.children) {
                             val dose = doseSnap.getValue(BabyDoseSchedule::class.java)
                             if (dose != null && dose.isVisible) {
                                 val display = BabyVaccineDisplay(
+                                    babyId = babyId,
                                     babyName = baby.fullName,
                                     vaccineName = vaccine.vaccineName,
                                     vaccineType = vaccine.vaccineType,
@@ -237,7 +239,6 @@ class DatabaseService {
                     }
                 }
 
-
                 callback.onSchedulesLoaded(vaccineDisplayList)
             }
 
@@ -246,7 +247,6 @@ class DatabaseService {
             }
         })
     }
-
 
     fun saveFcmToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -263,6 +263,47 @@ class DatabaseService {
             }
         }
     }
+
+
+    fun fetchBabyById(babyId: String, callback: InterfaceClass.BabyCallback) {
+        databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var foundBaby: Baby? = null
+
+                for (userSnap in snapshot.children) {
+                    val babiesSnap = userSnap.child("babies")
+                    for (babySnap in babiesSnap.children) {
+                        val id = babySnap.child("id").getValue(String::class.java)
+                        if (id == babyId) {
+                            foundBaby = babySnap.getValue(Baby::class.java)
+                            break
+                        }
+                    }
+                    if (foundBaby != null) break
+                }
+
+                if (foundBaby != null) {
+                    callback.onBabyLoaded(foundBaby)
+                } else {
+                    callback.onError("Baby not found with ID: $babyId")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError(error.message)
+            }
+        })
+    }
+
+
+
+
+
+
+
+
+
+
 
 
     fun clearFcmTokenOnLogout() {
