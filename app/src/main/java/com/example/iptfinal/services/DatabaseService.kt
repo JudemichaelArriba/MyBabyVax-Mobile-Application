@@ -296,14 +296,66 @@ class DatabaseService {
     }
 
 
+    fun markDoseAsCompleted(
+        babyId: String,
+        vaccineName: String,
+        doseName: String,
+        callback: InterfaceClass.StatusCallback
+    ) {
+        databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var doseFound = false
 
+                for (userSnap in snapshot.children) {
+                    val babiesSnap = userSnap.child("babies")
+                    for (babySnap in babiesSnap.children) {
+                        val id = babySnap.child("id").getValue(String::class.java)
+                        if (id == babyId) {
+                            val vaccineSnap = babySnap.child("schedules").child(vaccineName)
+                            val dosesSnap = vaccineSnap.child("doses")
 
+                            val doseChildren = dosesSnap.children.toList()
+                            for ((index, doseChild) in doseChildren.withIndex()) {
+                                val currentDoseName =
+                                    doseChild.child("doseName").getValue(String::class.java)
 
+                                if (currentDoseName == doseName) {
 
+                                    val doseRef = doseChild.ref.child("completed")
+                                    doseRef.setValue(true)
+                                        .addOnSuccessListener {
 
+                                            if (index + 1 < doseChildren.size) {
+                                                val nextDose = doseChildren[index + 1]
+                                                val nextDoseRef = nextDose.ref.child("visible")
+                                                nextDoseRef.setValue(true)
+                                            }
+                                            callback.onSuccess("Dose marked as completed.")
+                                        }
+                                        .addOnFailureListener { e ->
+                                            callback.onError("Failed to update dose: ${e.message}")
+                                        }
 
+                                    doseFound = true
+                                    break
+                                }
+                            }
+                        }
+                        if (doseFound) break
+                    }
+                    if (doseFound) break
+                }
 
+                if (!doseFound) {
+                    callback.onError("Dose not found for baby ID: $babyId")
+                }
+            }
 
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError("Database error: ${error.message}")
+            }
+        })
+    }
 
 
     fun clearFcmTokenOnLogout() {

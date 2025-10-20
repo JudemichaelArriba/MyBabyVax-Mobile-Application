@@ -194,17 +194,36 @@ class ScheduleInfoPage : AppCompatActivity() {
                 binding.vaccineName.text = vaccineName
                 binding.doseName.text = doseName
                 binding.scheduleDate.text = date
+            }
 
-                if (currentBabyId != null && babyList.contains(currentBabyId)) {
-                    Toast.makeText(this, "Attendance recorded successfully!", Toast.LENGTH_LONG)
-                        .show()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Invalid Qr Code",
-                        Toast.LENGTH_LONG
-                    ).show()
+            if (currentBabyId != null && babyList.contains(currentBabyId)) {
+                lifecycleScope.launchWhenStarted {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            markDoseAsCompletedSuspend(currentBabyId!!, vaccineName, doseName)
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@ScheduleInfoPage,
+                                "Dose marked as completed successfully!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@ScheduleInfoPage,
+                                "${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 }
+            } else {
+                Toast.makeText(this, "Invalid QR Code or baby ID mismatch.", Toast.LENGTH_LONG)
+                    .show()
             }
 
         } catch (e: Exception) {
@@ -212,6 +231,28 @@ class ScheduleInfoPage : AppCompatActivity() {
             Toast.makeText(this, "Invalid QR data", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+    private suspend fun markDoseAsCompletedSuspend(
+        babyId: String,
+        vaccineName: String,
+        doseName: String
+    ): Unit = suspendCancellableCoroutine { cont ->
+        databaseService.markDoseAsCompleted(
+            babyId,
+            vaccineName,
+            doseName,
+            object : InterfaceClass.StatusCallback {
+                override fun onSuccess(message: String) {
+                    cont.resume(Unit) {}
+                }
+
+                override fun onError(message: String) {
+                    cont.resumeWithException(Exception(message))
+                }
+            })
+    }
+
 
     private fun fetchBabyByIdCoroutine(babyId: String) {
         lifecycleScope.launchWhenStarted {
