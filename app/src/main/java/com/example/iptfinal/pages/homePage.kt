@@ -53,11 +53,11 @@ class homePage : Fragment() {
         val user: Users = sessionManager.getUser()
 
 
-        binding.notificationIcon.setOnClickListener {
-            NotificationManagerHelper.clearCount(requireContext())
-            updateNotificationBadge()
-
-        }
+//        binding.notificationIcon.setOnClickListener {
+//            NotificationManagerHelper.clearCount(requireContext())
+//            updateNotificationBadge()
+//
+//        }
 
         val username = if (user.firstname.isNotEmpty() || user.lastname.isNotEmpty()) {
             "${user.firstname} ${user.lastname}"

@@ -1,17 +1,17 @@
 package com.example.iptfinal.adapters
 
-
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ItemBabyBinding
 import com.example.iptfinal.models.Baby
-import android.graphics.BitmapFactory
-import android.util.Base64
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.ContextCompat
+import com.example.iptfinal.pages.BabyInfoPage
 import java.util.Calendar
 
 class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
@@ -38,13 +38,10 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
             tvBirthWeight.text = "${baby.weightAtBirth ?: 0.0}kg"
             tvBirthHeight.text = "${baby.heightAtBirth ?: 0}cm"
 
-
             if (!baby.profileImageUrl.isNullOrEmpty()) {
                 try {
-
                     val imageBytes = Base64.decode(baby.profileImageUrl, Base64.DEFAULT)
                     val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
                     Glide.with(holder.binding.profileImage.context)
                         .load(bitmap)
                         .circleCrop()
@@ -62,7 +59,6 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                     genderIcon.setImageResource(R.drawable.ic_male_icon)
                     genderIcon.setColorFilter(null)
                 }
-
                 "female" -> {
                     genderIcon.setImageResource(R.drawable.ic_female_icon)
                     genderIcon.setColorFilter(
@@ -70,22 +66,24 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                         android.graphics.PorterDuff.Mode.SRC_IN
                     )
                 }
-
                 else -> {
                     genderIcon.setImageResource(android.R.color.transparent)
                 }
             }
 
-
-
-            btnMoreOptions.setOnClickListener {
-
+            // New code: navigate to BabyInfoPage
+            holder.itemView.setOnClickListener {
+                val context = holder.itemView.context
+                val intent = Intent(context, BabyInfoPage::class.java)
+                intent.putExtra("baby_id", baby.id) // only pass the ID
+                context.startActivity(intent)
             }
+
+            btnMoreOptions.setOnClickListener {}
         }
     }
 
     override fun getItemCount(): Int = babies.size
-
 
     fun submitList(newList: List<Baby>) {
         babies.clear()
@@ -114,7 +112,6 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
 
         if (ageDays < 0) {
             ageMonths--
-
             val prevMonth = today.clone() as Calendar
             prevMonth.add(Calendar.MONTH, -1)
             ageDays += prevMonth.getActualMaximum(Calendar.DAY_OF_MONTH)

@@ -71,13 +71,13 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_marginEnd="16dp">
 
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/notificationIcon"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/notiicon"
-                        android:tint="@color/mainColor"
-                        android:contentDescription="Notifications" />
+<!--                    <com.google.android.material.imageview.ShapeableImageView-->
+<!--                        android:id="@+id/notificationIcon"-->
+<!--                        android:layout_width="30dp"-->
+<!--                        android:layout_height="30dp"-->
+<!--                        android:src="@drawable/notiicon"-->
+<!--                        android:tint="@color/mainColor"-->
+<!--                        android:contentDescription="Notifications" />-->
 
                     <TextView
                         android:id="@+id/notificationBadge"

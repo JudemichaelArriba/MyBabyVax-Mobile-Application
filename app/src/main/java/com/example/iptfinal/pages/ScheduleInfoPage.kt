@@ -1,6 +1,7 @@
 package com.example.iptfinal.pages
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.iptfinal.R
 import com.example.iptfinal.adapters.BabyAdapter
+import com.example.iptfinal.components.DialogHelper
+import com.example.iptfinal.components.bottomNav
 import com.example.iptfinal.databinding.ActivityScheduleInfoPageBinding
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Baby
@@ -213,12 +216,17 @@ class ScheduleInfoPage : AppCompatActivity() {
                         }
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(
+                            DialogHelper.showSuccess(
                                 this@ScheduleInfoPage,
-                                "Dose marked as completed successfully!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                                "Successful",
+                                "Successfully Scanned the Qrcode"
+                            ) {
+                                finish()
+                            }
+
+
                         }
+
 
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
