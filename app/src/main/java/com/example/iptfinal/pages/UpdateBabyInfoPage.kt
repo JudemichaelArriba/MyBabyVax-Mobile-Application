@@ -1,25 +1,49 @@
 package com.example.iptfinal.pages
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Base64
 import android.view.View
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.example.iptfinal.components.DialogHelper
 import com.example.iptfinal.databinding.ActivityUpdateBabyInfoPageBinding
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Baby
 import com.example.iptfinal.services.DatabaseService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class UpdateBabyInfoPage : AppCompatActivity() {
 
     private lateinit var binding: ActivityUpdateBabyInfoPageBinding
     private val databaseService = DatabaseService()
     private lateinit var currentBaby: Baby
-    private var isPopulatingFields = false 
+    private var isPopulatingFields = false
+
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, it)
+            binding.profileImage.setImageBitmap(bitmap)
+            val outputStream = java.io.ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+            binding.profileImage.tag = base64String
+            toggleSaveButton()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,32 +53,50 @@ class UpdateBabyInfoPage : AppCompatActivity() {
 
         val babyId = intent.getStringExtra("baby_id")
         if (babyId.isNullOrEmpty()) {
-            Toast.makeText(this, "Error: Baby ID missing", Toast.LENGTH_SHORT).show()
-            finish()
+            DialogHelper.showError(this, "Error", "Baby ID missing") { finish() }
             return
         }
 
         binding.progressBar.visibility = View.VISIBLE
         binding.formScrollView.visibility = View.GONE
 
-        databaseService.fetchBabyById(babyId, object : InterfaceClass.BabyCallback {
-            override fun onBabyLoaded(baby: Baby) {
-                currentBaby = baby
-                populateFields(baby)
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                currentBaby = fetchBabyAsync(babyId)
+                populateFields(currentBaby)
                 setupChangeListeners()
                 binding.progressBar.visibility = View.GONE
                 binding.formScrollView.visibility = View.VISIBLE
                 toggleSaveButton()
+            } catch (e: Exception) {
+                DialogHelper.showError(
+                    this@UpdateBabyInfoPage,
+                    "Error",
+                    e.message ?: "Unknown error"
+                )
             }
-
-            override fun onError(error: String) {
-                Toast.makeText(this@UpdateBabyInfoPage, error, Toast.LENGTH_SHORT).show()
-            }
-        })
+        }
 
         binding.backButton.setOnClickListener { onBackPressed() }
 
-        binding.btnSaveBaby.setOnClickListener { updateBabyInfo() }
+        binding.btnSaveBaby.setOnClickListener {
+            DialogHelper.showWarning(
+                this,
+                "Confirm",
+                "Do you want to save changes?",
+                onConfirm = {
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        saveBabyInfo()
+                    }
+                }
+            )
+        }
+
+        binding.btnUploadImage.setOnClickListener {
+            if (!isPopulatingFields) pickImageLauncher.launch(
+                "image/*"
+            )
+        }
     }
 
     private fun populateFields(baby: Baby) {
@@ -82,34 +124,6 @@ class UpdateBabyInfoPage : AppCompatActivity() {
         isPopulatingFields = false
     }
 
-    private fun updateBabyInfo() {
-        val updatedBaby = Baby(
-            id = currentBaby.id,
-            parentId = currentBaby.parentId,
-            fullName = binding.etFullName.text.toString(),
-            birthPlace = binding.etBirthPlace.text.toString(),
-            gender = if (binding.rbMale.isChecked) "Male" else "Female",
-            weightAtBirth = binding.etWeight.text.toString().toDoubleOrNull(),
-            heightAtBirth = binding.etHeight.text.toString().toDoubleOrNull(),
-            bloodType = binding.etBloodType.text.toString(),
-            profileImageUrl = currentBaby.profileImageUrl
-        )
-
-        databaseService.updateBaby(
-            updatedBaby.id ?: "",
-            updatedBaby,
-            object : InterfaceClass.StatusCallback {
-                override fun onSuccess(message: String) {
-                    Toast.makeText(this@UpdateBabyInfoPage, message, Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-
-                override fun onError(error: String) {
-                    Toast.makeText(this@UpdateBabyInfoPage, error, Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
     private fun setupChangeListeners() {
         val textFields = listOf(
             binding.etFullName,
@@ -118,16 +132,9 @@ class UpdateBabyInfoPage : AppCompatActivity() {
             binding.etHeight,
             binding.etBloodType
         )
-        textFields.forEach { editText ->
-            editText.addTextChangedListener {
-                if (!isPopulatingFields) toggleSaveButton()
-            }
-        }
-
+        textFields.forEach { editText -> editText.addTextChangedListener { if (!isPopulatingFields) toggleSaveButton() } }
         binding.rbMale.setOnCheckedChangeListener { _, _ -> if (!isPopulatingFields) toggleSaveButton() }
         binding.rbFemale.setOnCheckedChangeListener { _, _ -> if (!isPopulatingFields) toggleSaveButton() }
-
-        binding.profileImage.setOnClickListener { if (!isPopulatingFields) toggleSaveButton() }
     }
 
     private fun toggleSaveButton() {
@@ -145,5 +152,51 @@ class UpdateBabyInfoPage : AppCompatActivity() {
                 (binding.rbMale.isChecked && currentBaby.gender != "Male") ||
                 (binding.rbFemale.isChecked && currentBaby.gender != "Female") ||
                 binding.profileImage.tag != currentBaby.profileImageUrl
+    }
+
+    private suspend fun fetchBabyAsync(babyId: String): Baby = suspendCancellableCoroutine { cont ->
+        databaseService.fetchBabyById(babyId, object : InterfaceClass.BabyCallback {
+            override fun onBabyLoaded(baby: Baby) {
+                cont.resume(baby)
+            }
+
+            override fun onError(error: String) {
+                cont.resumeWithException(Exception(error))
+            }
+        })
+    }
+
+    private suspend fun saveBabyInfo() {
+        val updatedBaby = Baby(
+            id = currentBaby.id,
+            parentId = currentBaby.parentId,
+            fullName = binding.etFullName.text.toString(),
+            birthPlace = binding.etBirthPlace.text.toString(),
+            gender = if (binding.rbMale.isChecked) "Male" else "Female",
+            weightAtBirth = binding.etWeight.text.toString().toDoubleOrNull(),
+            heightAtBirth = binding.etHeight.text.toString().toDoubleOrNull(),
+            bloodType = binding.etBloodType.text.toString(),
+            profileImageUrl = binding.profileImage.tag as? String ?: currentBaby.profileImageUrl
+        )
+
+        try {
+            suspendCancellableCoroutine<Unit> { cont ->
+                databaseService.updateBaby(
+                    updatedBaby.id ?: "",
+                    updatedBaby,
+                    object : InterfaceClass.StatusCallback {
+                        override fun onSuccess(message: String) {
+                            cont.resume(Unit)
+                        }
+
+                        override fun onError(error: String) {
+                            cont.resumeWithException(Exception(error))
+                        }
+                    })
+            }
+            DialogHelper.showSuccess(this, "Success", "Baby info updated successfully") { finish() }
+        } catch (e: Exception) {
+            DialogHelper.showError(this, "Error", "Failed to update baby: ${e.message}")
+        }
     }
 }
