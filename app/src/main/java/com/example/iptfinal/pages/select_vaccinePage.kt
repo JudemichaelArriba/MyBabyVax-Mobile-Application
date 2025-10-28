@@ -19,7 +19,6 @@ import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
 
 class select_vaccinePage : AppCompatActivity() {
 
@@ -45,7 +44,6 @@ class select_vaccinePage : AppCompatActivity() {
         binding = ActivitySelectVaccinePageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         fullName = intent.getStringExtra("fullName")
         gender = intent.getStringExtra("gender")
         dateOfBirth = intent.getStringExtra("dateOfBirth")
@@ -64,7 +62,6 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-
     private fun uriToBase64(uri: Uri): String? {
         return try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -82,9 +79,6 @@ class select_vaccinePage : AppCompatActivity() {
         binding.recyclerViewVaccines.layoutManager = LinearLayoutManager(this)
     }
 
-    /**
-     * Loads ALL vaccines from Firebase (no filtering by eligible age)
-     */
     private fun loadVaccinesCoroutine() {
         binding.progressBarLoading.visibility = View.VISIBLE
         binding.recyclerViewVaccines.visibility = View.GONE
@@ -92,7 +86,6 @@ class select_vaccinePage : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val vaccines = fetchVaccines()
-
 
                 val dosesMap = mutableMapOf<String, List<Dose>>()
                 coroutineScope {
@@ -107,11 +100,57 @@ class select_vaccinePage : AppCompatActivity() {
                 doseMap = HashMap(dosesMap)
                 selectedVaccines = vaccines
 
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val babyDoseMap = mutableMapOf<String, MutableList<BabyDoseSchedule>>()
 
-                vaccineAdapter = VaccineAdapter(this@select_vaccinePage, vaccines, dosesMap)
-                binding.recyclerViewVaccines.adapter = vaccineAdapter
+                for (vaccine in vaccines) {
+                    val doses = dosesMap[vaccine.id] ?: emptyList()
+                    var currentDate = Date()
+
+                    val babyDoseList = doses.mapIndexed { index, dose ->
+                        val intervalDays = when (dose.intervalUnit?.lowercase()) {
+                            "days" -> dose.intervalNumber ?: 0.0
+                            "weeks" -> (dose.intervalNumber ?: 0.0) * 7
+                            "months" -> {
+                                val num = dose.intervalNumber ?: 0.0
+                                val fullMonths = num.toInt() * 30
+                                val halfMonth = if (num % 1.0 >= 0.5) 15 else 0
+                                (fullMonths + halfMonth).toDouble()
+                            }
+                            "years" -> (dose.intervalNumber ?: 0.0) * 365
+                            else -> 0.0
+                        }
+
+                        val doseCal = Calendar.getInstance()
+                        doseCal.time = currentDate
+                        doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
+                        currentDate = doseCal.time
+
+                        BabyDoseSchedule(
+                            doseName = dose.name,
+                            interval = "${dose.intervalNumber} ${dose.intervalUnit}",
+                            date = sdf.format(currentDate),
+                            isVisible = (index == 0),
+                            isCompleted = false
+                        )
+                    }.toMutableList()
+
+                    babyDoseMap[vaccine.id ?: ""] = babyDoseList
+                }
+
+                vaccineAdapter = VaccineAdapter(
+                    this@select_vaccinePage,
+                    vaccines,
+                    babyDoseMap
+                )
+
+                binding.recyclerViewVaccines.apply {
+                    layoutManager = LinearLayoutManager(this@select_vaccinePage)
+                    adapter = vaccineAdapter
+                    visibility = View.VISIBLE
+                }
+
                 binding.progressBarLoading.visibility = View.GONE
-                binding.recyclerViewVaccines.visibility = View.VISIBLE
 
             } catch (e: Exception) {
                 Log.e("SelectVaccine", "Error loading vaccines: ${e.message}")
@@ -119,7 +158,6 @@ class select_vaccinePage : AppCompatActivity() {
             }
         }
     }
-
 
     private suspend fun fetchVaccines(): List<Vaccine> = suspendCancellableCoroutine { cont ->
         databaseService.fetchVaccines(object : InterfaceClass.VaccineCallback {
@@ -132,7 +170,6 @@ class select_vaccinePage : AppCompatActivity() {
             }
         })
     }
-
 
     private suspend fun fetchDoses(vaccineId: String): List<Dose> =
         suspendCancellableCoroutine { cont ->
@@ -147,10 +184,6 @@ class select_vaccinePage : AppCompatActivity() {
             })
         }
 
-
-    /**
-     * Saves baby data + automatically calculates vaccine schedule dates based on intervals
-     */
     private fun saveBabyWithSchedulesCoroutine() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         binding.loadingOverlay.visibility = View.VISIBLE
@@ -172,18 +205,13 @@ class select_vaccinePage : AppCompatActivity() {
             .child(userId)
             .child("babies")
 
-
         userBabiesRef.get().addOnSuccessListener { snapshot ->
             var duplicate = false
             for (babySnap in snapshot.children) {
                 val existingName = babySnap.child("fullName").value?.toString()?.trim() ?: ""
                 val existingDob = babySnap.child("dateOfBirth").value?.toString()?.trim() ?: ""
 
-                if (existingName.equals(
-                        fullName,
-                        ignoreCase = true
-                    ) && existingDob == dateOfBirth
-                ) {
+                if (existingName.equals(fullName, ignoreCase = true) && existingDob == dateOfBirth) {
                     duplicate = true
                     break
                 }
@@ -199,8 +227,8 @@ class select_vaccinePage : AppCompatActivity() {
                 return@addOnSuccessListener
             }
 
-
-            saveBabyAndScheduleToDatabase(userId, baby)
+            val updatedDoseMap = vaccineAdapter.getUpdatedVaccineSchedules()
+            saveBabyAndScheduleToDatabase(userId, baby, updatedDoseMap)
         }.addOnFailureListener {
             binding.loadingOverlay.visibility = View.GONE
             DialogHelper.showError(
@@ -211,44 +239,15 @@ class select_vaccinePage : AppCompatActivity() {
         }
     }
 
-    private fun saveBabyAndScheduleToDatabase(userId: String, baby: Baby) {
+    private fun saveBabyAndScheduleToDatabase(
+        userId: String,
+        baby: Baby,
+        updatedDoseMap: Map<String, MutableList<BabyDoseSchedule>>
+    ) {
         lifecycleScope.launch {
             try {
-                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val birthDate = sdf.parse(baby.dateOfBirth!!) ?: Date()
-                val cal = Calendar.getInstance()
-                cal.time = birthDate
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-
                 val schedules = selectedVaccines.map { vaccine ->
-                    val doses = doseMap[vaccine.id] ?: emptyList()
-                    var currentDate = cal.time
-
-                    val doseSchedules = doses.mapIndexed { index, dose ->
-                        val intervalDays = when (dose.intervalUnit?.lowercase()) {
-                            "days" -> dose.intervalNumber ?: 0.0
-                            "weeks" -> (dose.intervalNumber ?: 0.0) * 7
-                            "months" -> (dose.intervalNumber ?: 0.0) * 30.4375
-                            "years" -> (dose.intervalNumber ?: 0.0) * 365
-                            else -> 0.0
-                        }
-
-                        val doseCal = Calendar.getInstance()
-                        doseCal.time = currentDate
-                        doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
-                        currentDate = doseCal.time
-
-                        BabyDoseSchedule(
-                            doseName = dose.name,
-                            interval = "${dose.intervalNumber} ${dose.intervalUnit}",
-                            date = sdf.format(currentDate),
-                            isVisible = (index == 0),
-                            isCompleted = false
-                        )
-                    }
+                    val doseSchedules = updatedDoseMap[vaccine.id] ?: mutableListOf()
 
                     BabyVaccineSchedule(
                         vaccineName = vaccine.name,
@@ -290,6 +289,4 @@ class select_vaccinePage : AppCompatActivity() {
             }
         }
     }
-
-
 }
