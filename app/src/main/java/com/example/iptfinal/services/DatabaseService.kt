@@ -400,4 +400,40 @@ class DatabaseService {
     }
 
 
+    fun deleteBaby(babyId: String, callback: InterfaceClass.StatusCallback) {
+        databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var babyFound = false
+
+                for (userSnap in snapshot.children) {
+                    val babiesSnap = userSnap.child("babies")
+                    for (babySnap in babiesSnap.children) {
+                        val id = babySnap.child("id").getValue(String::class.java)
+                        if (id == babyId) {
+                            babySnap.ref.removeValue()
+                                .addOnSuccessListener {
+                                    callback.onSuccess("Baby deleted successfully.")
+                                }
+                                .addOnFailureListener { e ->
+                                    callback.onError("Failed to delete baby: ${e.message}")
+                                }
+                            babyFound = true
+                            break
+                        }
+                    }
+                    if (babyFound) break
+                }
+
+                if (!babyFound) {
+                    callback.onError("Baby not found with ID: $babyId")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError("Database error: ${error.message}")
+            }
+        })
+    }
+
+
 }

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.iptfinal.R
+import com.example.iptfinal.components.DialogHelper
 import com.example.iptfinal.databinding.ActivityBabyInfoPageBinding
 import com.example.iptfinal.models.Baby
 import com.example.iptfinal.services.DatabaseService
@@ -26,7 +27,7 @@ class BabyInfoPage : AppCompatActivity() {
 
     private lateinit var binding: ActivityBabyInfoPageBinding
     private val databaseService = DatabaseService()
-
+    private lateinit var currentBaby: Baby
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,8 +46,8 @@ class BabyInfoPage : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 showLoading(true)
-                val baby = fetchBabyDataSuspend(babyId)
-                displayBabyInfo(baby)
+                currentBaby = fetchBabyDataSuspend(babyId)
+                displayBabyInfo(currentBaby)
             } catch (e: Exception) {
                 Toast.makeText(
                     this@BabyInfoPage,
@@ -69,14 +70,35 @@ class BabyInfoPage : AppCompatActivity() {
             startActivity(intent)
 
 
-
-
-
         }
 
         binding.deleteButton.setOnClickListener {
-            Toast.makeText(this, "Delete feature coming soon.", Toast.LENGTH_SHORT).show()
+            DialogHelper.showWarning(
+                this,
+                "Confirm Delete",
+                "Are you sure you want to delete this baby?",
+                onConfirm = {
+                    currentBaby.id?.let { babyId ->
+                        databaseService.deleteBaby(babyId, object : InterfaceClass.StatusCallback {
+                            override fun onSuccess(message: String) {
+                                DialogHelper.showSuccess(
+                                    this@BabyInfoPage,
+                                    "Deleted",
+                                    message
+                                ) {
+                                    finish()
+                                }
+                            }
+
+                            override fun onError(error: String) {
+                                DialogHelper.showError(this@BabyInfoPage, "Error", error)
+                            }
+                        })
+                    } ?: DialogHelper.showError(this, "Error", "Baby ID is missing")
+                }
+            )
         }
+
     }
 
     private suspend fun fetchBabyDataSuspend(babyId: String): Baby =
