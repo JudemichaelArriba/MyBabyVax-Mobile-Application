@@ -28,14 +28,6 @@ class HistoryPage : AppCompatActivity() {
         }
 
 
-        val sessionManager = SessionManager(this)
-        val user = sessionManager.getUser()
-
-
-        val username = "${user.firstname} ${user.lastname}"
-        Log.d("HistoryPageLog", "Username: $username")
-
-        binding.usernameTv.text = username
 
         binding.backButton.setOnClickListener {
             finish()

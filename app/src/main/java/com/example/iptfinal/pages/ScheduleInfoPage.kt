@@ -213,6 +213,24 @@ class ScheduleInfoPage : AppCompatActivity() {
                     try {
                         withContext(Dispatchers.IO) {
                             markDoseAsCompletedSuspend(currentBabyId!!, vaccineName, doseName)
+                            val baby = fetchBabySuspend(currentBabyId!!)
+
+                            databaseService.addVaccineHistory(
+                                baby,
+                                vaccineName,
+                                doseName,
+                                date,
+                                object : InterfaceClass.StatusCallback {
+                                    override fun onSuccess(message: String) {
+                                        Log.d("History", message)
+                                    }
+
+                                    override fun onError(message: String) {
+                                        Log.e("History", message)
+                                    }
+
+                                }
+                            )
                         }
 
                         withContext(Dispatchers.Main) {

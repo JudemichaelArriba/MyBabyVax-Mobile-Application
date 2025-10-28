@@ -1,10 +1,13 @@
 package com.example.iptfinal.services
 
+import android.R
+import android.hardware.Camera
 import android.util.Log
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.example.iptfinal.models.Baby
 import com.example.iptfinal.models.BabyDoseSchedule
 import com.example.iptfinal.models.BabyVaccineDisplay
+import com.example.iptfinal.models.BabyVaccineHistory
 import com.example.iptfinal.models.BabyVaccineSchedule
 import com.example.iptfinal.models.Users
 import com.example.iptfinal.models.Vaccine
@@ -75,11 +78,9 @@ class DatabaseService {
         updates["mobileNum"] = updatedUser.mobileNum
         updates["profilePic"] = updatedUser.profilePic
 
-        databaseUsers.child(uid).updateChildren(updates)
-            .addOnSuccessListener {
+        databaseUsers.child(uid).updateChildren(updates).addOnSuccessListener {
                 callback.onSuccess("Profile updated successfully")
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 callback.onError("Failed to update profile: ${e.message}")
             }
     }
@@ -197,8 +198,7 @@ class DatabaseService {
 
 
     fun fetchAllBabyVaccineSchedules(
-        userId: String,
-        callback: InterfaceClass.BabyVaccineDisplayCallback
+        userId: String, callback: InterfaceClass.BabyVaccineDisplayCallback
     ) {
         val userBabiesRef = databaseUsers.child(userId).child("babies")
 
@@ -322,8 +322,7 @@ class DatabaseService {
                                 if (currentDoseName == doseName) {
 
                                     val doseRef = doseChild.ref.child("completed")
-                                    doseRef.setValue(true)
-                                        .addOnSuccessListener {
+                                    doseRef.setValue(true).addOnSuccessListener {
 
                                             if (index + 1 < doseChildren.size) {
                                                 val nextDose = doseChildren[index + 1]
@@ -331,8 +330,7 @@ class DatabaseService {
                                                 nextDoseRef.setValue(true)
                                             }
                                             callback.onSuccess("Dose marked as completed.")
-                                        }
-                                        .addOnFailureListener { e ->
+                                        }.addOnFailureListener { e ->
                                             callback.onError("Failed to update dose: ${e.message}")
                                         }
 
@@ -366,17 +364,13 @@ class DatabaseService {
 
 
     fun updateBaby(
-        babyId: String,
-        updatedBaby: Baby,
-        callback: InterfaceClass.StatusCallback
+        babyId: String, updatedBaby: Baby, callback: InterfaceClass.StatusCallback
     ) {
 
         val parentId = updatedBaby.parentId ?: return callback.onError("Parent ID is missing")
-        val babyRef = FirebaseDatabase.getInstance()
-            .getReference("users")
-            .child(parentId)
-            .child("babies")
-            .child(babyId)
+        val babyRef =
+            FirebaseDatabase.getInstance().getReference("users").child(parentId).child("babies")
+                .child(babyId)
 
 
         val updates = mutableMapOf<String, Any?>()
@@ -390,11 +384,9 @@ class DatabaseService {
         updatedBaby.profileImageUrl?.let { updates["profileImageUrl"] = it }
 
 
-        babyRef.updateChildren(updates)
-            .addOnSuccessListener {
+        babyRef.updateChildren(updates).addOnSuccessListener {
                 callback.onSuccess("Baby info updated successfully.")
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 callback.onError("Failed to update baby: ${e.message}")
             }
     }
@@ -410,11 +402,9 @@ class DatabaseService {
                     for (babySnap in babiesSnap.children) {
                         val id = babySnap.child("id").getValue(String::class.java)
                         if (id == babyId) {
-                            babySnap.ref.removeValue()
-                                .addOnSuccessListener {
+                            babySnap.ref.removeValue().addOnSuccessListener {
                                     callback.onSuccess("Baby deleted successfully.")
-                                }
-                                .addOnFailureListener { e ->
+                                }.addOnFailureListener { e ->
                                     callback.onError("Failed to delete baby: ${e.message}")
                                 }
                             babyFound = true
@@ -433,6 +423,100 @@ class DatabaseService {
                 callback.onError("Database error: ${error.message}")
             }
         })
+    }
+
+
+    fun addVaccineHistory(
+        baby: Baby,
+        vaccineName: String,
+        doseName: String,
+        date: String,
+        callback: InterfaceClass.StatusCallback
+    ) {
+
+
+        val history = BabyVaccineHistory(
+            babyFullName = baby.fullName,
+            babyGender = baby.gender,
+            babyDateOfBirth = baby.dateOfBirth,
+            vaccineName = vaccineName,
+            doseName = doseName,
+            date = date
+
+        )
+
+        databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                var foundBaby = false
+
+                for (userSnap in snapshot.children) {
+                    val babiesSnapshot = userSnap.child("babies")
+                    for (babySnap in babiesSnapshot.children) {
+                        val id = babySnap.child("id").getValue(String::class.java)
+                        if (id == baby.id) {
+                            val historyRef = babySnap.ref.child("history").push()
+                            historyRef.setValue(history).addOnSuccessListener {
+                                callback.onSuccess("History successfully addded")
+                            }.addOnFailureListener { e ->
+                                    callback.onError("Failed to add history" + e.message)
+                                }
+                            foundBaby = true
+                            break
+                        }
+                        if (foundBaby) break
+                    }
+                    if (!foundBaby) {
+                        callback.onError("Baby not found with id" + baby.id)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError("database error something wen wrong" + error.message)
+            }
+
+        })
+
+    }
+
+
+    fun fetchAllBabiesHistoryForUser(
+        userId: String,
+        callback: (Map<String, List<BabyVaccineHistory>>) -> Unit,
+        errorCallback: (String) -> Unit
+    ) {
+        databaseUsers.child(userId).child("babies")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val historyMap = mutableMapOf<String, MutableList<BabyVaccineHistory>>()
+
+
+                    for (babySnap in snapshot.children) {
+                        val babyName =
+                            babySnap.child("fullname").getValue(String::class.java) ?: "unknown"
+                        val babyHistoryList = mutableListOf<BabyVaccineHistory>()
+                        val historySnap = babySnap.child("history")
+                        for (historyEntrySnap in historySnap.children) {
+                            val history = historyEntrySnap.getValue(BabyVaccineHistory::class.java)
+                            if (history != null) {
+                                babyHistoryList.add(history)
+                            }
+                        }
+                        historyMap[babyName] = babyHistoryList
+
+                    }
+                    callback(historyMap)
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    errorCallback(error.message)
+                }
+
+            })
+
+
     }
 
 
