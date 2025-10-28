@@ -103,37 +103,42 @@ class select_vaccinePage : AppCompatActivity() {
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val babyDoseMap = mutableMapOf<String, MutableList<BabyDoseSchedule>>()
 
+
+                val birthCal = Calendar.getInstance()
+                if (dateOfBirth != null) {
+                    val sdfBirth = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    birthCal.time = sdfBirth.parse(dateOfBirth!!) ?: Date()
+                }
+
                 for (vaccine in vaccines) {
                     val doses = dosesMap[vaccine.id] ?: emptyList()
-                    var currentDate = Date()
 
-                    val babyDoseList = doses.mapIndexed { index, dose ->
-                        val intervalDays = when (dose.intervalUnit?.lowercase()) {
-                            "days" -> dose.intervalNumber ?: 0.0
-                            "weeks" -> (dose.intervalNumber ?: 0.0) * 7
+                    val babyDoseList = doses.map { dose ->
+
+                        val doseCal = birthCal.clone() as Calendar
+                        when (dose.intervalUnit?.lowercase()) {
+                            "days" -> doseCal.add(Calendar.DAY_OF_YEAR, (dose.intervalNumber ?: 0.0).toInt())
+                            "weeks" -> doseCal.add(Calendar.DAY_OF_YEAR, ((dose.intervalNumber ?: 0.0) * 7).toInt())
                             "months" -> {
-                                val num = dose.intervalNumber ?: 0.0
-                                val fullMonths = num.toInt() * 30
-                                val halfMonth = if (num % 1.0 >= 0.5) 15 else 0
-                                (fullMonths + halfMonth).toDouble()
+                                val months = (dose.intervalNumber ?: 0.0).toInt()
+                                val halfMonth = if ((dose.intervalNumber ?: 0.0) % 1 >= 0.5) 15 else 0
+                                doseCal.add(Calendar.MONTH, months)
+                                doseCal.add(Calendar.DAY_OF_YEAR, halfMonth)
                             }
-                            "years" -> (dose.intervalNumber ?: 0.0) * 365
-                            else -> 0.0
+                            "years" -> doseCal.add(Calendar.YEAR, (dose.intervalNumber ?: 0.0).toInt())
                         }
-
-                        val doseCal = Calendar.getInstance()
-                        doseCal.time = currentDate
-                        doseCal.add(Calendar.DAY_OF_YEAR, intervalDays.toInt())
-                        currentDate = doseCal.time
 
                         BabyDoseSchedule(
                             doseName = dose.name,
                             interval = "${dose.intervalNumber} ${dose.intervalUnit}",
-                            date = sdf.format(currentDate),
-                            isVisible = (index == 0),
+                            date = sdf.format(doseCal.time),
+                            isVisible = false,
                             isCompleted = false
                         )
                     }.toMutableList()
+
+
+                    if (babyDoseList.isNotEmpty()) babyDoseList[0].isVisible = true
 
                     babyDoseMap[vaccine.id ?: ""] = babyDoseList
                 }

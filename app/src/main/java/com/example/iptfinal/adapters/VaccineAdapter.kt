@@ -1,5 +1,6 @@
 package com.example.iptfinal.adapters
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.iptfinal.databinding.ItemVaccineBinding
 import com.example.iptfinal.models.BabyDoseSchedule
 import com.example.iptfinal.models.Vaccine
+import java.text.SimpleDateFormat
+import java.util.*
 
 class VaccineAdapter(
     private val context: Context,
@@ -39,6 +42,43 @@ class VaccineAdapter(
 
         binding.recyclerViewDoses.layoutManager = LinearLayoutManager(context)
         binding.recyclerViewDoses.adapter = doseAdapter
+
+
+        binding.cbVaccine.setOnCheckedChangeListener(null)
+        binding.cbVaccine.isChecked = doseSchedules.all { it.isCompleted }
+
+        binding.cbVaccine.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+
+                val calendar = Calendar.getInstance()
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        val selectedDate = Calendar.getInstance()
+                        selectedDate.set(year, month, dayOfMonth)
+                        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val formattedDate = formatter.format(selectedDate.time)
+
+
+                        doseAdapter.setAllChecked(true)
+
+                        val list = babyDoseMap[vaccine.id ?: ""] ?: mutableListOf()
+                        for (d in list) {
+                            if (d.date.isNullOrEmpty()) d.date = formattedDate
+                        }
+
+                        babyDoseMap[vaccine.id ?: ""] = list
+                        doseAdapter.notifyDataSetChanged()
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            } else {
+
+                doseAdapter.setAllChecked(false)
+            }
+        }
 
         var isExpanded = false
         binding.ivExpand.setOnClickListener {
