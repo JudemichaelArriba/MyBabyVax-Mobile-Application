@@ -365,4 +365,39 @@ class DatabaseService {
     }
 
 
+    fun updateBaby(
+        babyId: String,
+        updatedBaby: Baby,
+        callback: InterfaceClass.StatusCallback
+    ) {
+
+        val parentId = updatedBaby.parentId ?: return callback.onError("Parent ID is missing")
+        val babyRef = FirebaseDatabase.getInstance()
+            .getReference("users")
+            .child(parentId)
+            .child("babies")
+            .child(babyId)
+
+
+        val updates = mutableMapOf<String, Any?>()
+        updatedBaby.fullName?.let { updates["fullName"] = it }
+        updatedBaby.gender?.let { updates["gender"] = it }
+        updatedBaby.dateOfBirth?.let { updates["dateOfBirth"] = it }
+        updatedBaby.birthPlace?.let { updates["birthPlace"] = it }
+        updatedBaby.weightAtBirth?.let { updates["weightAtBirth"] = it }
+        updatedBaby.heightAtBirth?.let { updates["heightAtBirth"] = it }
+        updatedBaby.bloodType?.let { updates["bloodType"] = it }
+        updatedBaby.profileImageUrl?.let { updates["profileImageUrl"] = it }
+
+
+        babyRef.updateChildren(updates)
+            .addOnSuccessListener {
+                callback.onSuccess("Baby info updated successfully.")
+            }
+            .addOnFailureListener { e ->
+                callback.onError("Failed to update baby: ${e.message}")
+            }
+    }
+
+
 }

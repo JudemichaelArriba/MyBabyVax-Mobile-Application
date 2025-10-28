@@ -1,5 +1,6 @@
 package com.example.iptfinal.pages
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
@@ -9,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.example.iptfinal.R
 import com.example.iptfinal.databinding.ActivityBabyInfoPageBinding
 import com.example.iptfinal.models.Baby
 import com.example.iptfinal.services.DatabaseService
@@ -30,6 +32,7 @@ class BabyInfoPage : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityBabyInfoPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         val babyId = intent.getStringExtra("baby_id")
 
@@ -58,7 +61,17 @@ class BabyInfoPage : AppCompatActivity() {
         binding.backButton.setOnClickListener { finish() }
 
         binding.editButton.setOnClickListener {
-            Toast.makeText(this, "Edit feature coming soon.", Toast.LENGTH_SHORT).show()
+
+
+            val babyId = intent.getStringExtra("baby_id") ?: return@setOnClickListener
+            val intent = Intent(this, UpdateBabyInfoPage::class.java)
+            intent.putExtra("baby_id", babyId)
+            startActivity(intent)
+
+
+
+
+
         }
 
         binding.deleteButton.setOnClickListener {
