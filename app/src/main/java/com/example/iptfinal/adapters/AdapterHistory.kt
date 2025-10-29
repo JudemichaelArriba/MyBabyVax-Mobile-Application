@@ -7,7 +7,7 @@ import com.example.iptfinal.databinding.ItemHistoryBinding
 import com.example.iptfinal.models.BabyVaccineHistory
 
 class AdapterHistory(
-    private val historyList: List<BabyVaccineHistory>
+    private val historyList: MutableList<BabyVaccineHistory>
 ) : RecyclerView.Adapter<AdapterHistory.HistoryViewHolder>() {
 
     inner class HistoryViewHolder(val binding: ItemHistoryBinding) :
@@ -25,8 +25,12 @@ class AdapterHistory(
         holder.binding.tvVaccineName.text = history.vaccineName ?: "Unknown Vaccine"
         holder.binding.tvDoseName.text = history.doseName ?: "Unknown Dose"
         holder.binding.tvScheduleDate.text = history.date ?: "No Date"
+    }
 
-
+    fun updateList(newList: List<BabyVaccineHistory>) {
+        historyList.clear()
+        historyList.addAll(newList)
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int = historyList.size

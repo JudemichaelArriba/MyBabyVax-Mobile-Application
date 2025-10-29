@@ -29,6 +29,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -214,12 +217,14 @@ class ScheduleInfoPage : AppCompatActivity() {
                         withContext(Dispatchers.IO) {
                             markDoseAsCompletedSuspend(currentBabyId!!, vaccineName, doseName)
                             val baby = fetchBabySuspend(currentBabyId!!)
-
+                            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                                Date()
+                            )
                             databaseService.addVaccineHistory(
                                 baby,
                                 vaccineName,
                                 doseName,
-                                date,
+                                today,
                                 object : InterfaceClass.StatusCallback {
                                     override fun onSuccess(message: String) {
                                         Log.d("History", message)

@@ -79,10 +79,10 @@ class DatabaseService {
         updates["profilePic"] = updatedUser.profilePic
 
         databaseUsers.child(uid).updateChildren(updates).addOnSuccessListener {
-                callback.onSuccess("Profile updated successfully")
-            }.addOnFailureListener { e ->
-                callback.onError("Failed to update profile: ${e.message}")
-            }
+            callback.onSuccess("Profile updated successfully")
+        }.addOnFailureListener { e ->
+            callback.onError("Failed to update profile: ${e.message}")
+        }
     }
 
 
@@ -149,8 +149,10 @@ class DatabaseService {
         baby.parentId = userId
         baby.createdAt = System.currentTimeMillis()
 
-        val scheduleMap =
-            schedules.associateBy { it.vaccineName ?: "vaccine_${System.currentTimeMillis()}" }
+        val scheduleMap = schedules.associateBy {
+            it.vaccineName ?: "vaccine_${System.currentTimeMillis()}"
+        }
+
 
         val babyData = mapOf(
             "id" to baby.id,
@@ -163,13 +165,24 @@ class DatabaseService {
             "bloodType" to baby.bloodType,
             "profileImageUrl" to baby.profileImageUrl,
             "parentId" to baby.parentId,
-            "createdAt" to baby.createdAt,
-            "schedules" to scheduleMap
+            "createdAt" to baby.createdAt
         )
 
-        newBabyRef.setValue(babyData)
-            .addOnSuccessListener { callback.onSuccess("Baby added as a child of the user.") }
-            .addOnFailureListener { e -> callback.onError("Failed to add baby: ${e.message}") }
+
+        newBabyRef.updateChildren(babyData)
+            .addOnSuccessListener {
+
+                newBabyRef.child("schedules").updateChildren(scheduleMap)
+                    .addOnSuccessListener {
+                        callback.onSuccess("Baby added successfully with schedules.")
+                    }
+                    .addOnFailureListener { e ->
+                        callback.onError("Failed to add schedules: ${e.message}")
+                    }
+            }
+            .addOnFailureListener { e ->
+                callback.onError("Failed to add baby: ${e.message}")
+            }
     }
 
 
@@ -324,15 +337,15 @@ class DatabaseService {
                                     val doseRef = doseChild.ref.child("completed")
                                     doseRef.setValue(true).addOnSuccessListener {
 
-                                            if (index + 1 < doseChildren.size) {
-                                                val nextDose = doseChildren[index + 1]
-                                                val nextDoseRef = nextDose.ref.child("visible")
-                                                nextDoseRef.setValue(true)
-                                            }
-                                            callback.onSuccess("Dose marked as completed.")
-                                        }.addOnFailureListener { e ->
-                                            callback.onError("Failed to update dose: ${e.message}")
+                                        if (index + 1 < doseChildren.size) {
+                                            val nextDose = doseChildren[index + 1]
+                                            val nextDoseRef = nextDose.ref.child("visible")
+                                            nextDoseRef.setValue(true)
                                         }
+                                        callback.onSuccess("Dose marked as completed.")
+                                    }.addOnFailureListener { e ->
+                                        callback.onError("Failed to update dose: ${e.message}")
+                                    }
 
                                     doseFound = true
                                     break
@@ -385,10 +398,10 @@ class DatabaseService {
 
 
         babyRef.updateChildren(updates).addOnSuccessListener {
-                callback.onSuccess("Baby info updated successfully.")
-            }.addOnFailureListener { e ->
-                callback.onError("Failed to update baby: ${e.message}")
-            }
+            callback.onSuccess("Baby info updated successfully.")
+        }.addOnFailureListener { e ->
+            callback.onError("Failed to update baby: ${e.message}")
+        }
     }
 
 
@@ -403,10 +416,10 @@ class DatabaseService {
                         val id = babySnap.child("id").getValue(String::class.java)
                         if (id == babyId) {
                             babySnap.ref.removeValue().addOnSuccessListener {
-                                    callback.onSuccess("Baby deleted successfully.")
-                                }.addOnFailureListener { e ->
-                                    callback.onError("Failed to delete baby: ${e.message}")
-                                }
+                                callback.onSuccess("Baby deleted successfully.")
+                            }.addOnFailureListener { e ->
+                                callback.onError("Failed to delete baby: ${e.message}")
+                            }
                             babyFound = true
                             break
                         }
@@ -459,8 +472,8 @@ class DatabaseService {
                             historyRef.setValue(history).addOnSuccessListener {
                                 callback.onSuccess("History successfully addded")
                             }.addOnFailureListener { e ->
-                                    callback.onError("Failed to add history" + e.message)
-                                }
+                                callback.onError("Failed to add history" + e.message)
+                            }
                             foundBaby = true
                             break
                         }
@@ -494,7 +507,7 @@ class DatabaseService {
 
                     for (babySnap in snapshot.children) {
                         val babyName =
-                            babySnap.child("fullname").getValue(String::class.java) ?: "unknown"
+                            babySnap.child("fullName").getValue(String::class.java) ?: "unknown"
                         val babyHistoryList = mutableListOf<BabyVaccineHistory>()
                         val historySnap = babySnap.child("history")
                         for (historyEntrySnap in historySnap.children) {
