@@ -8,10 +8,18 @@ import com.example.iptfinal.databinding.ItemBabyFilterBinding
 
 class BabyFilterAdapter(
     private val babyNames: List<String>,
+    private val preSelectedBaby: String?,
     private val onSelect: (String) -> Unit
 ) : RecyclerView.Adapter<BabyFilterAdapter.BabyViewHolder>() {
 
     private var selectedPosition = RecyclerView.NO_POSITION
+
+
+    init {
+
+        selectedPosition = babyNames.indexOf(preSelectedBaby)
+    }
+
 
     inner class BabyViewHolder(val binding: ItemBabyFilterBinding) :
         RecyclerView.ViewHolder(binding.root)

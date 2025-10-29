@@ -31,7 +31,7 @@ class HistoryPage : AppCompatActivity() {
     private val databaseService = DatabaseService()
     private val historyList = mutableListOf<BabyVaccineHistory>()
     private val allHistoryList = mutableListOf<BabyVaccineHistory>()
-
+    private var selectedBaby: String? = "All Babies"
     private lateinit var historyAdapter: AdapterHistory
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +46,7 @@ class HistoryPage : AppCompatActivity() {
         setupRecyclerView()
         fetchHistory()
 
-        // Handle filter click
+
         binding.filter.setOnClickListener {
             showFilterBottomSheet()
         }
@@ -110,10 +110,10 @@ class HistoryPage : AppCompatActivity() {
         val babyNames = mutableListOf("All Babies")
         babyNames.addAll(allHistoryList.mapNotNull { it.babyFullName }.distinct())
 
-        var selectedBaby: String? = null
-        val adapter = BabyFilterAdapter(babyNames) { selected ->
+        val adapter = BabyFilterAdapter(babyNames, selectedBaby) { selected ->
             selectedBaby = selected
         }
+
 
         recyclerView.layoutManager = GridLayoutManager(this, 3)
         recyclerView.adapter = adapter
