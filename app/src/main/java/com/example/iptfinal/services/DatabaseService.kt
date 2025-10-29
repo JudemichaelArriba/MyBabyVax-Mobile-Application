@@ -533,4 +533,42 @@ class DatabaseService {
     }
 
 
+    fun updateNotificationPreference(
+        userId: String,
+        isEnabled: Boolean,
+        callback: InterfaceClass.StatusCallback
+    ) {
+        val userRef = databaseUsers.child(userId).child("notificationsEnabled")
+        userRef.setValue(isEnabled)
+            .addOnSuccessListener {
+                Log.d("DatabaseService", "Notification preference saved: $isEnabled")
+                callback.onSuccess("Notification preference updated.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("DatabaseService", "Failed to update notification preference: ${e.message}")
+                callback.onError("Failed to update notification preference: ${e.message}")
+            }
+    }
+
+
+//    fun fetchNotificationPreference(
+//        userId: String,
+//        callback: (Boolean) -> Unit,
+//        errorCallback: (String) -> Unit
+//    ) {
+//        val userRef = databaseUsers.child(userId).child("notificationsEnabled")
+//        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                val isEnabled = snapshot.getValue(Boolean::class.java) ?: true
+//                Log.d("DatabaseService", "Fetched notification preference: $isEnabled")
+//                callback(isEnabled)
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                errorCallback("Failed to fetch notification preference: ${error.message}")
+//            }
+//        })
+//    }
+
+
 }
