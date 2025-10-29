@@ -39,7 +39,7 @@
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_gravity="center"
-                android:src="@drawable/calendar"
+                android:src="@drawable/check"
                 app:tint="@color/mainColor"
 
                 />
@@ -126,7 +126,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Schedule Date"
+            android:text="Date"
             android:textColor="@color/secondary"
             android:textSize="14sp"
             android:textStyle="bold"
