@@ -451,6 +451,7 @@ class DatabaseService {
         val history = BabyVaccineHistory(
             babyFullName = baby.fullName,
             babyGender = baby.gender,
+            babyBloodType = baby.bloodType,
             babyDateOfBirth = baby.dateOfBirth,
             vaccineName = vaccineName,
             doseName = doseName,
@@ -538,7 +539,7 @@ class DatabaseService {
         isEnabled: Boolean,
         callback: InterfaceClass.StatusCallback
     ) {
-        val userRef = databaseUsers.child(userId).child("notificationsEnabled")
+        val userRef = databaseUsers.child(userId).child("notifications_enabled")
         userRef.setValue(isEnabled)
             .addOnSuccessListener {
                 Log.d("DatabaseService", "Notification preference saved: $isEnabled")

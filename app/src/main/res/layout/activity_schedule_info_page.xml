@@ -47,6 +47,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:letterSpacing="-0.015"
+                    android:layout_gravity="center_vertical"
                     android:text="Schedule Info"
                     android:textColor="@color/mainColor"
                     android:textSize="23sp"

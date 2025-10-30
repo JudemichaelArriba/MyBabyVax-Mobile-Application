@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.iptfinal.databinding.ItemHistoryBinding
 import com.example.iptfinal.models.BabyVaccineHistory
+import com.example.iptfinal.pages.HistoryInfoPage
 
 class AdapterHistory(
     private val historyList: MutableList<BabyVaccineHistory>
@@ -25,6 +26,21 @@ class AdapterHistory(
         holder.binding.tvVaccineName.text = history.vaccineName ?: "Unknown Vaccine"
         holder.binding.tvDoseName.text = history.doseName ?: "Unknown Dose"
         holder.binding.tvScheduleDate.text = history.date ?: "No Date"
+
+
+
+        holder.itemView.setOnClickListener { view ->
+            val context = view.context
+            val intent = android.content.Intent(context, HistoryInfoPage::class.java)
+            intent.putExtra("babyFullName", history.babyFullName)
+            intent.putExtra("babyGender", history.babyGender)
+            intent.putExtra("babyDateOfBirth", history.babyDateOfBirth)
+            intent.putExtra("babyBloodType", history.babyBloodType)
+            intent.putExtra("vaccineName", history.vaccineName)
+            intent.putExtra("doseName", history.doseName)
+            intent.putExtra("date", history.date)
+            context.startActivity(intent)
+        }
     }
 
     fun updateList(newList: List<BabyVaccineHistory>) {

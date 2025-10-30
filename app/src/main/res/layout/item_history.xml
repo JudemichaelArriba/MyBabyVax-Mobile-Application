@@ -36,8 +36,8 @@
                 android:background="@drawable/rounded_bg_main_color" />
 
             <ImageView
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_gravity="center"
                 android:src="@drawable/check"
                 app:tint="@color/mainColor"

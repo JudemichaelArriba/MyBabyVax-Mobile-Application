@@ -79,17 +79,17 @@
 <!--                        android:tint="@color/mainColor"-->
 <!--                        android:contentDescription="Notifications" />-->
 
-                    <TextView
-                        android:id="@+id/notificationBadge"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="top|end"
-                        android:background="@drawable/badge_background"
-                        android:gravity="center"
-                        android:text="0"
-                        android:textColor="@android:color/white"
-                        android:textSize="10sp"
-                        android:visibility="gone" />
+<!--                    <TextView-->
+<!--                        android:id="@+id/notificationBadge"-->
+<!--                        android:layout_width="18dp"-->
+<!--                        android:layout_height="18dp"-->
+<!--                        android:layout_gravity="top|end"-->
+<!--                        android:background="@drawable/badge_background"-->
+<!--                        android:gravity="center"-->
+<!--                        android:text="0"-->
+<!--                        android:textColor="@android:color/white"-->
+<!--                        android:textSize="10sp"-->
+<!--                        android:visibility="gone" />-->
 
                 </FrameLayout>
 

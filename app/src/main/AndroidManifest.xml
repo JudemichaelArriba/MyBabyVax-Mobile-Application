@@ -19,6 +19,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IPTFinal">
         <activity
+            android:name=".pages.HistoryInfoPage"
+            android:exported="false" />
+        <activity
             android:name=".pages.UpdateBabyInfoPage"
             android:exported="false" />
         <activity

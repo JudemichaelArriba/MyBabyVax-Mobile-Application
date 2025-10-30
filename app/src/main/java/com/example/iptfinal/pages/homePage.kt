@@ -164,16 +164,16 @@ class homePage : Fragment() {
         }
 
 
-    private fun updateNotificationBadge() {
-        val count = NotificationManagerHelper.getCount(requireContext())
-        Log.d("notifdevug", "Notification count = $count")
-        if (count > 0) {
-            binding.notificationBadge.visibility = View.VISIBLE
-            binding.notificationBadge.text = count.toString()
-        } else {
-            binding.notificationBadge.visibility = View.GONE
-        }
-    }
+//    private fun updateNotificationBadge() {
+//        val count = NotificationManagerHelper.getCount(requireContext())
+//        Log.d("notifdevug", "Notification count = $count")
+//        if (count > 0) {
+//            binding.notificationBadge.visibility = View.VISIBLE
+//            binding.notificationBadge.text = count.toString()
+//        } else {
+//            binding.notificationBadge.visibility = View.GONE
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -182,6 +182,6 @@ class homePage : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateNotificationBadge()
+//        updateNotificationBadge()
     }
 }

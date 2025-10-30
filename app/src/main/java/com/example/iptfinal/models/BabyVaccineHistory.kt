@@ -7,6 +7,5 @@ data class BabyVaccineHistory(
     var babyBloodType: String? = null,
     var vaccineName: String? = null,
     var doseName: String? = null,
-    var date: String? = null,
-    var timestamp: Long = System.currentTimeMillis()
+    var date: String? = null
 )
