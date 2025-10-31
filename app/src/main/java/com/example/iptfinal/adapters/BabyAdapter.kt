@@ -71,11 +71,12 @@ class BabyAdapter : RecyclerView.Adapter<BabyAdapter.BabyViewHolder>() {
                 }
             }
 
-            // New code: navigate to BabyInfoPage
+
             holder.itemView.setOnClickListener {
                 val context = holder.itemView.context
                 val intent = Intent(context, BabyInfoPage::class.java)
-                intent.putExtra("baby_id", baby.id) // only pass the ID
+                intent.putExtra("baby_id", baby.id)
+                intent.putExtra("dateOfBirth", baby.dateOfBirth)
                 context.startActivity(intent)
             }
 

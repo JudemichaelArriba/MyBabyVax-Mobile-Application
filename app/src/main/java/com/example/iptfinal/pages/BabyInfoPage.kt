@@ -72,6 +72,20 @@ class BabyInfoPage : AppCompatActivity() {
 
         }
 
+        binding.addVacc.setOnClickListener {
+
+
+            val babyId = intent.getStringExtra("baby_id") ?: return@setOnClickListener
+            val birthdate = intent.getStringExtra("dateOfBirth") ?: return@setOnClickListener
+            val intent = Intent(this, SelectVaccinePage2::class.java)
+            intent.putExtra("baby_id", babyId)
+            intent.putExtra("dateOfBirth", birthdate)
+            startActivity(intent)
+
+
+        }
+
+
         binding.deleteButton.setOnClickListener {
             DialogHelper.showWarning(
                 this,

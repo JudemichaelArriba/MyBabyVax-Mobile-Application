@@ -572,4 +572,104 @@ class DatabaseService {
 //    }
 
 
+    fun fetchVaccinesNotInBabySchedule(
+        babyId: String,
+        callback: InterfaceClass.VaccineCallback
+    ) {
+        databaseVaccines.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(vaccineSnapshot: DataSnapshot) {
+                val allVaccines = mutableListOf<Vaccine>()
+                for (vaccineSnap in vaccineSnapshot.children) {
+                    val vaccine = vaccineSnap.getValue(Vaccine::class.java)
+                    if (vaccine != null) {
+                        vaccine.id = vaccineSnap.key ?: ""
+                        allVaccines.add(vaccine)
+                    }
+                }
+
+
+                databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(userSnapshot: DataSnapshot) {
+                        var scheduledVaccineNames: Set<String> = emptySet()
+
+                        for (userSnap in userSnapshot.children) {
+                            val babiesSnap = userSnap.child("babies")
+                            for (babySnap in babiesSnap.children) {
+                                val id = babySnap.child("id").getValue(String::class.java)
+                                if (id == babyId) {
+                                    val schedulesSnap = babySnap.child("schedules")
+                                    scheduledVaccineNames =
+                                        schedulesSnap.children.mapNotNull { it.key }.toSet()
+                                    break
+                                }
+                            }
+                            if (scheduledVaccineNames.isNotEmpty()) break
+                        }
+
+
+                        val notScheduledVaccines =
+                            allVaccines.filter { it.name !in scheduledVaccineNames }
+                        callback.onVaccinesLoaded(notScheduledVaccines)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        callback.onError("Failed to fetch baby's schedule: ${error.message}")
+                    }
+                })
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError("Failed to fetch vaccines: ${error.message}")
+            }
+        })
+    }
+
+
+    fun addSchedulesToExistingBaby(
+        babyId: String,
+        newSchedules: List<BabyVaccineSchedule>,
+        callback: InterfaceClass.StatusCallback
+    ) {
+
+        databaseUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var babyRefFound: DatabaseReference? = null
+
+                loop@ for (userSnap in snapshot.children) {
+                    val babiesSnap = userSnap.child("babies")
+                    for (babySnap in babiesSnap.children) {
+                        val id = babySnap.child("id").getValue(String::class.java)
+                        if (id == babyId) {
+                            babyRefFound = babySnap.ref.child("schedules")
+                            break@loop
+                        }
+                    }
+                }
+
+                if (babyRefFound == null) {
+                    callback.onError("Baby not found with ID: $babyId")
+                    return
+                }
+
+                val scheduleMap = newSchedules.associateBy {
+                    it.vaccineName ?: "vaccine_${System.currentTimeMillis()}"
+                }
+
+
+                babyRefFound.updateChildren(scheduleMap)
+                    .addOnSuccessListener {
+                        callback.onSuccess("Schedules added successfully!")
+                    }
+                    .addOnFailureListener { e ->
+                        callback.onError("Failed to add schedules: ${e.message}")
+                    }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback.onError("Database error: ${error.message}")
+            }
+        })
+    }
+
+
 }
