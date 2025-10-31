@@ -57,9 +57,7 @@ class homePage : Fragment() {
         val username = if (user.firstname.isNotEmpty() || user.lastname.isNotEmpty()) {
             "${user.firstname} ${user.lastname}"
         } else "Username"
-
         binding.username.text = username
-
         if (user.profilePic.isNotEmpty()) {
             try {
                 if (user.profilePic.startsWith("/9j") || user.profilePic.contains("base64")) {
@@ -82,18 +80,14 @@ class homePage : Fragment() {
         } else {
             binding.profileImage.setImageResource(R.drawable.default_profile)
         }
-
         binding.history.setOnClickListener {
             startActivity(android.content.Intent(requireContext(), HistoryPage::class.java))
         }
-
         binding.schedule.setOnClickListener {
             startActivity(android.content.Intent(requireContext(), SchedulePage::class.java))
         }
-
         setupUpcomingRecycler()
         setupSwipeRefresh()
-
         if (!isDataLoaded) loadUpcomingSchedules()
     }
 
@@ -113,7 +107,6 @@ class homePage : Fragment() {
     private fun loadUpcomingSchedules() {
         val userId = auth.currentUser?.uid ?: return
         val safeBinding = _binding ?: return
-
         safeBinding.loading.visibility = View.VISIBLE
         safeBinding.upcomingRecyclerView.visibility = View.GONE
         safeBinding.nestedScrollView.visibility = View.VISIBLE
@@ -134,13 +127,9 @@ class homePage : Fragment() {
                         }
                     }
                     .take(3)
-
                 allSchedules.clear()
                 allSchedules.addAll(sorted)
-
-
                 _binding?.upcomingRecyclerView?.adapter?.let { scheduleAdapter.notifyDataSetChanged() }
-
                 isDataLoaded = true
 
             } catch (e: Exception) {
@@ -154,7 +143,6 @@ class homePage : Fragment() {
             }
         }
     }
-
 
     private suspend fun fetchSchedules(userId: String): List<BabyVaccineDisplay> =
         suspendCancellableCoroutine { cont ->

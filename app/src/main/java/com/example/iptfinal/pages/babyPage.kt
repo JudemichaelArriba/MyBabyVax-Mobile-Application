@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.iptfinal.R
 import com.example.iptfinal.adapters.BabyAdapter
 import com.example.iptfinal.databinding.FragmentBabyPageBinding
 import com.example.iptfinal.models.Baby
@@ -30,6 +31,7 @@ class babyPage : Fragment() {
     private var isExpanded = false
     private lateinit var babyAdapter: BabyAdapter
     private val databaseService = DatabaseService()
+    private var isDataLoaded = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,25 +47,9 @@ class babyPage : Fragment() {
         setupRecyclerView()
         setupSearchBar()
         setupAddButton()
+        setupSwipeRefresh()
 
-
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId != null) {
-
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    binding.loading.visibility = View.VISIBLE
-                    val babies = fetchBabies(currentUserId)
-                    babyAdapter.submitList(babies)
-                } catch (e: Exception) {
-                    Log.e("BabyPage", "Error fetching babies: ${e.message}")
-                }finally {
-                    binding.loading.visibility = View.GONE
-                }
-            }
-
-        }
+        loadBabies()
     }
 
     private fun setupRecyclerView() {
@@ -101,15 +87,43 @@ class babyPage : Fragment() {
         }
     }
 
+    private fun setupSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(resources.getColor(R.color.mainColor))
+        binding.swipeRefresh.setOnRefreshListener {
+            loadBabies()
+        }
+    }
+
+    private fun loadBabies() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        binding.loading.visibility = View.VISIBLE
+        binding.babyRecyclerView.visibility = View.GONE
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val babies = fetchBabies(userId)
+                babyAdapter.submitList(babies)
+                isDataLoaded = true
+            } catch (e: Exception) {
+                Log.e("BabyPage", "Error fetching babies: ${e.message}")
+            } finally {
+                binding.loading.visibility = View.GONE
+                binding.babyRecyclerView.visibility = View.VISIBLE
+                binding.swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+
     private suspend fun fetchBabies(userId: String): List<Baby> =
         suspendCancellableCoroutine { cont ->
             databaseService.fetchBabiesForUser(userId, object : InterfaceClass.BabiesCallback {
                 override fun onBabiesLoaded(babies: List<Baby>) {
-                    cont.resume(babies)
+                    if (cont.isActive) cont.resume(babies)
                 }
 
                 override fun onError(message: String?) {
-                    cont.resumeWithException(Exception(message ?: "Error"))
+                    if (cont.isActive) cont.resumeWithException(Exception(message ?: "Error"))
                 }
             })
         }
@@ -149,3 +163,4 @@ class babyPage : Fragment() {
         _binding = null
     }
 }
+
