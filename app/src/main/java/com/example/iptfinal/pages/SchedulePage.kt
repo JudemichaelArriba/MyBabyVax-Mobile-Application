@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.iptfinal.R
 import com.example.iptfinal.adapters.ScheduleAdapter
 import com.example.iptfinal.databinding.ActivitySchedulePageBinding
 import com.example.iptfinal.models.BabyVaccineDisplay
@@ -34,7 +35,7 @@ class SchedulePage : AppCompatActivity() {
 
         setupRecyclerView()
         loadSchedules()
-
+        setUpSwipeRefresh()
         binding.backButton.setOnClickListener {
             finish()
         }
@@ -43,6 +44,14 @@ class SchedulePage : AppCompatActivity() {
     private fun setupRecyclerView() {
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@SchedulePage)
+        }
+    }
+
+
+    private fun setUpSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(resources.getColor(R.color.mainColor))
+        binding.swipeRefresh.setOnRefreshListener {
+            loadSchedules()
         }
     }
 
@@ -75,6 +84,7 @@ class SchedulePage : AppCompatActivity() {
                     scheduleAdapter = ScheduleAdapter(notCompletedSchedules.toMutableList())
                     binding.recyclerView.adapter = scheduleAdapter
                     binding.loading.visibility = View.GONE
+                    binding.swipeRefresh.isRefreshing = false
                 }
 
             } catch (e: Exception) {

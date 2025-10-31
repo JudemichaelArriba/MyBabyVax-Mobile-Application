@@ -45,7 +45,7 @@ class HistoryPage : AppCompatActivity() {
 
         setupRecyclerView()
         fetchHistory()
-
+        setUpSwipeRefresh()
 
         binding.filter.setOnClickListener {
             showFilterBottomSheet()
@@ -79,6 +79,7 @@ class HistoryPage : AppCompatActivity() {
                 historyAdapter.notifyDataSetChanged()
                 binding.loading.visibility = android.view.View.GONE
                 binding.babyRecyclerView.visibility = android.view.View.VISIBLE
+                binding.swipeRefresh.isRefreshing = false
             } catch (e: Exception) {
                 Log.e("HistoryPage", "Error fetching history: ${e.message}")
                 binding.loading.visibility = android.view.View.GONE
@@ -132,5 +133,14 @@ class HistoryPage : AppCompatActivity() {
 
         dialog.show()
     }
+
+
+    private fun setUpSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(resources.getColor(R.color.mainColor))
+        binding.swipeRefresh.setOnRefreshListener {
+            fetchHistory()
+        }
+    }
+
 
 }
