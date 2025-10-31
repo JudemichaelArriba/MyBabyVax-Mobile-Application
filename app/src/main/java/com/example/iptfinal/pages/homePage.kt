@@ -2,7 +2,6 @@ package com.example.iptfinal.pages
 
 import android.view.View
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -26,7 +25,6 @@ import kotlin.coroutines.resumeWithException
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.iptfinal.adapters.ScheduleAdapter
-import com.example.iptfinal.services.NotificationManagerHelper
 
 class homePage : Fragment() {
 
@@ -35,10 +33,14 @@ class homePage : Fragment() {
     private val databaseService = DatabaseService()
     private lateinit var auth: FirebaseAuth
 
+    private var allSchedules: MutableList<BabyVaccineDisplay> = mutableListOf()
+    private lateinit var scheduleAdapter: ScheduleAdapter
+    private var isDataLoaded = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentHomePageBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -52,19 +54,9 @@ class homePage : Fragment() {
         val sessionManager = SessionManager(requireContext())
         val user: Users = sessionManager.getUser()
 
-
-//        binding.notificationIcon.setOnClickListener {
-//            NotificationManagerHelper.clearCount(requireContext())
-//            updateNotificationBadge()
-//
-//        }
-
         val username = if (user.firstname.isNotEmpty() || user.lastname.isNotEmpty()) {
             "${user.firstname} ${user.lastname}"
-        } else {
-            "Username"
-        }
-
+        } else "Username"
 
         binding.username.text = username
 
@@ -100,48 +92,65 @@ class homePage : Fragment() {
         }
 
         setupUpcomingRecycler()
-        loadUpcomingSchedules()
+        setupSwipeRefresh()
+
+        if (!isDataLoaded) loadUpcomingSchedules()
     }
 
     private fun setupUpcomingRecycler() {
         binding.upcomingRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        scheduleAdapter = ScheduleAdapter(allSchedules)
+        binding.upcomingRecyclerView.adapter = scheduleAdapter
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(resources.getColor(R.color.mainColor))
+        binding.swipeRefresh.setOnRefreshListener {
+            loadUpcomingSchedules()
+        }
     }
 
     private fun loadUpcomingSchedules() {
         val userId = auth.currentUser?.uid ?: return
+        val safeBinding = _binding ?: return
+
+        safeBinding.loading.visibility = View.VISIBLE
+        safeBinding.upcomingRecyclerView.visibility = View.GONE
+        safeBinding.nestedScrollView.visibility = View.VISIBLE
+
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
             try {
-
-                val safeBinding = _binding ?: return@launch
-
-                safeBinding.loading.visibility = View.VISIBLE
-                safeBinding.upcomingRecyclerView.visibility = View.GONE
-                safeBinding.nestedScrollView.visibility = View.VISIBLE
-
                 val schedules = fetchSchedules(userId)
+                val sorted = schedules
+                    .filter { !it.isCompleted && !it.scheduleDate.isNullOrEmpty() }
+                    .sortedBy {
+                        try {
+                            SimpleDateFormat(
+                                "yyyy-MM-dd",
+                                Locale.getDefault()
+                            ).parse(it.scheduleDate!!)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    .take(3)
 
-                val sorted =
-                    schedules.filter { !it.isCompleted && !it.scheduleDate.isNullOrEmpty() }
-                        .sortedBy {
-                            try {
-                                SimpleDateFormat(
-                                    "yyyy-MM-dd",
-                                    Locale.getDefault()
-                                ).parse(it.scheduleDate!!)
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }.take(3)
+                allSchedules.clear()
+                allSchedules.addAll(sorted)
 
-                val adapter = ScheduleAdapter(sorted)
-                safeBinding.upcomingRecyclerView.adapter = adapter
+
+                _binding?.upcomingRecyclerView?.adapter?.let { scheduleAdapter.notifyDataSetChanged() }
+
+                isDataLoaded = true
 
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                val safeBinding = _binding ?: return@launch
-                safeBinding.loading.visibility = View.GONE
-                safeBinding.upcomingRecyclerView.visibility = View.VISIBLE
+                _binding?.let {
+                    it.loading.visibility = View.GONE
+                    it.upcomingRecyclerView.visibility = View.VISIBLE
+                    it.swipeRefresh.isRefreshing = false
+                }
             }
         }
     }
@@ -153,35 +162,18 @@ class homePage : Fragment() {
                 userId,
                 object : InterfaceClass.BabyVaccineDisplayCallback {
                     override fun onSchedulesLoaded(schedules: List<BabyVaccineDisplay>) {
-                        cont.resume(schedules)
+                        if (cont.isActive) cont.resume(schedules)
                     }
 
                     override fun onError(error: String) {
-                        cont.resumeWithException(Exception(error))
+                        if (cont.isActive) cont.resumeWithException(Exception(error))
                     }
                 }
             )
         }
 
-
-//    private fun updateNotificationBadge() {
-//        val count = NotificationManagerHelper.getCount(requireContext())
-//        Log.d("notifdevug", "Notification count = $count")
-//        if (count > 0) {
-//            binding.notificationBadge.visibility = View.VISIBLE
-//            binding.notificationBadge.text = count.toString()
-//        } else {
-//            binding.notificationBadge.visibility = View.GONE
-//        }
-//    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        updateNotificationBadge()
     }
 }

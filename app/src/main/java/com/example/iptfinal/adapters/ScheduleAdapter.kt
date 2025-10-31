@@ -8,7 +8,7 @@ import com.example.iptfinal.databinding.ItemScheduleBinding
 import com.example.iptfinal.models.BabyVaccineDisplay
 import com.example.iptfinal.pages.ScheduleInfoPage
 
-class ScheduleAdapter(private val scheduleList: List<BabyVaccineDisplay>) :
+class ScheduleAdapter(private var scheduleList: MutableList<BabyVaccineDisplay>) :
     RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder>() {
 
     inner class ScheduleViewHolder(val binding: ItemScheduleBinding) :
@@ -29,19 +29,19 @@ class ScheduleAdapter(private val scheduleList: List<BabyVaccineDisplay>) :
 
         b.tvBabyName.text = item.babyName
         b.tvVaccineName.text = "Vaccine: ${item.vaccineName}"
-                b.tvDoseName.text = "Dose: ${item.doseName}"
-                b.tvScheduleDate.text = "Date: ${item.scheduleDate}"
+        b.tvDoseName.text = "Dose: ${item.doseName}"
+        b.tvScheduleDate.text = "Date: ${item.scheduleDate}"
 
-                b.root.setOnClickListener {
-                    val context = holder.itemView.context
-                    val intent = Intent(context, ScheduleInfoPage::class.java).apply {
-                        putExtra("babyId", item.babyId)
-                        putExtra("babyName", item.babyName)
-                        putExtra("vaccineName", item.vaccineName)
-                        putExtra("doseName", item.doseName)
-                        putExtra("scheduleDate", item.scheduleDate)
-                        putExtra("vaccineType", item.vaccineType)
-                        putExtra("route", item.route)
+        b.root.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, ScheduleInfoPage::class.java).apply {
+                putExtra("babyId", item.babyId)
+                putExtra("babyName", item.babyName)
+                putExtra("vaccineName", item.vaccineName)
+                putExtra("doseName", item.doseName)
+                putExtra("scheduleDate", item.scheduleDate)
+                putExtra("vaccineType", item.vaccineType)
+                putExtra("route", item.route)
                 putExtra("description", item.description)
                 putExtra("sideEffects", item.sideEffects)
             }
@@ -50,4 +50,11 @@ class ScheduleAdapter(private val scheduleList: List<BabyVaccineDisplay>) :
     }
 
     override fun getItemCount(): Int = scheduleList.size
+
+
+    fun updateList(newList: List<BabyVaccineDisplay>) {
+        scheduleList.clear()
+        scheduleList.addAll(newList)
+        notifyDataSetChanged()
+    }
 }

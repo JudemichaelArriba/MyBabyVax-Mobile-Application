@@ -59,7 +59,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 //    implementation("io.github.tutorialsandroid:kalertdialog:20.4.8")
 //    implementation("com.github.TutorialsAndroid:progressx:v6.0.19")
     implementation("com.github.TutorialsAndroid:KAlertDialog:v7.0.19")

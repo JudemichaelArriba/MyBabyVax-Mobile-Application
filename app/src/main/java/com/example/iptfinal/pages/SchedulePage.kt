@@ -72,7 +72,7 @@ class SchedulePage : AppCompatActivity() {
                         ).show()
                     }
 
-                    scheduleAdapter = ScheduleAdapter(notCompletedSchedules)
+                    scheduleAdapter = ScheduleAdapter(notCompletedSchedules.toMutableList())
                     binding.recyclerView.adapter = scheduleAdapter
                     binding.loading.visibility = View.GONE
                 }
