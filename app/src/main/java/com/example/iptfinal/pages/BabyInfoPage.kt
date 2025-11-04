@@ -28,12 +28,12 @@ class BabyInfoPage : AppCompatActivity() {
     private lateinit var binding: ActivityBabyInfoPageBinding
     private val databaseService = DatabaseService()
     private lateinit var currentBaby: Baby
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityBabyInfoPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
 
         val babyId = intent.getStringExtra("baby_id")
 
@@ -62,29 +62,20 @@ class BabyInfoPage : AppCompatActivity() {
         binding.backButton.setOnClickListener { finish() }
 
         binding.editButton.setOnClickListener {
-
-
             val babyId = intent.getStringExtra("baby_id") ?: return@setOnClickListener
             val intent = Intent(this, UpdateBabyInfoPage::class.java)
             intent.putExtra("baby_id", babyId)
             startActivity(intent)
-
-
         }
 
         binding.addVacc.setOnClickListener {
-
-
             val babyId = intent.getStringExtra("baby_id") ?: return@setOnClickListener
             val birthdate = intent.getStringExtra("dateOfBirth") ?: return@setOnClickListener
             val intent = Intent(this, SelectVaccinePage2::class.java)
             intent.putExtra("baby_id", babyId)
             intent.putExtra("dateOfBirth", birthdate)
             startActivity(intent)
-
-
         }
-
 
         binding.deleteButton.setOnClickListener {
             DialogHelper.showWarning(
@@ -92,9 +83,11 @@ class BabyInfoPage : AppCompatActivity() {
                 "Confirm Delete",
                 "Are you sure you want to delete this baby?",
                 onConfirm = {
+                    binding.loadingOverlay.visibility = View.VISIBLE
                     currentBaby.id?.let { babyId ->
                         databaseService.deleteBaby(babyId, object : InterfaceClass.StatusCallback {
                             override fun onSuccess(message: String) {
+                                binding.loadingOverlay.visibility = View.GONE
                                 DialogHelper.showSuccess(
                                     this@BabyInfoPage,
                                     "Deleted",
@@ -105,6 +98,7 @@ class BabyInfoPage : AppCompatActivity() {
                             }
 
                             override fun onError(error: String) {
+                                binding.loadingOverlay.visibility = View.GONE
                                 DialogHelper.showError(this@BabyInfoPage, "Error", error)
                             }
                         })
@@ -112,7 +106,6 @@ class BabyInfoPage : AppCompatActivity() {
                 }
             )
         }
-
     }
 
     private suspend fun fetchBabyDataSuspend(babyId: String): Baby =
@@ -157,6 +150,5 @@ class BabyInfoPage : AppCompatActivity() {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
         binding.scrollView.visibility = if (show) View.GONE else View.VISIBLE
         binding.actionLayout.visibility = if (show) View.GONE else View.VISIBLE
-
     }
 }
