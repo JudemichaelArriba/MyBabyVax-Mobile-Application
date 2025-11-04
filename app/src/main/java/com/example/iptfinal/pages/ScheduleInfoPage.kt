@@ -93,6 +93,27 @@ class ScheduleInfoPage : AppCompatActivity() {
         }
 
 
+
+
+        binding.btnGenerateQR.isEnabled = false
+        binding.btnGenerateQR.alpha = 0.5f
+
+        if (scheduleDate != null) {
+            try {
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val parsedDate = inputFormat.parse(scheduleDate)
+                val todayDate = inputFormat.parse(inputFormat.format(Date()))
+
+                if (parsedDate?.time == todayDate?.time) {
+                    binding.btnGenerateQR.isEnabled = true
+                    binding.btnGenerateQR.alpha = 1f
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+
         binding.btnGenerateQR.setOnClickListener {
             if (allPermissionsGranted()) {
                 startCameraPreview()
