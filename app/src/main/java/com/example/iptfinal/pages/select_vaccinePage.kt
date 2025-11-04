@@ -216,7 +216,7 @@ class select_vaccinePage : AppCompatActivity() {
                 val existingName = babySnap.child("fullName").value?.toString()?.trim() ?: ""
                 val existingDob = babySnap.child("dateOfBirth").value?.toString()?.trim() ?: ""
 
-                if (existingName.equals(fullName, ignoreCase = true) && existingDob == dateOfBirth) {
+                if (existingName.equals(fullName, ignoreCase = true)) {
                     duplicate = true
                     break
                 }
@@ -227,7 +227,7 @@ class select_vaccinePage : AppCompatActivity() {
                 DialogHelper.showError(
                     this@select_vaccinePage,
                     "Duplicate Baby",
-                    "A baby with the same name and birth date already exists."
+                    "A baby with the same name already exists."
                 )
                 return@addOnSuccessListener
             }
