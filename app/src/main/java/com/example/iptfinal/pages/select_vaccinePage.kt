@@ -54,6 +54,9 @@ class select_vaccinePage : AppCompatActivity() {
         babyImageUriString = intent.getStringExtra("imageUri")
         babyImageUri = babyImageUriString?.let { Uri.parse(it) }
 
+        binding.btnSave.isEnabled = false
+        binding.btnSave.alpha = 0.5f
+
         setupUI()
         loadVaccinesCoroutine()
 
@@ -103,7 +106,6 @@ class select_vaccinePage : AppCompatActivity() {
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val babyDoseMap = mutableMapOf<String, MutableList<BabyDoseSchedule>>()
 
-
                 val birthCal = Calendar.getInstance()
                 if (dateOfBirth != null) {
                     val sdfBirth = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -112,9 +114,7 @@ class select_vaccinePage : AppCompatActivity() {
 
                 for (vaccine in vaccines) {
                     val doses = dosesMap[vaccine.id] ?: emptyList()
-
                     val babyDoseList = doses.map { dose ->
-
                         val doseCal = birthCal.clone() as Calendar
                         when (dose.intervalUnit?.lowercase()) {
                             "days" -> doseCal.add(Calendar.DAY_OF_YEAR, (dose.intervalNumber ?: 0.0).toInt())
@@ -137,9 +137,7 @@ class select_vaccinePage : AppCompatActivity() {
                         )
                     }.toMutableList()
 
-
                     if (babyDoseList.isNotEmpty()) babyDoseList[0].isVisible = true
-
                     babyDoseMap[vaccine.id ?: ""] = babyDoseList
                 }
 
@@ -156,6 +154,8 @@ class select_vaccinePage : AppCompatActivity() {
                 }
 
                 binding.progressBarLoading.visibility = View.GONE
+                binding.btnSave.isEnabled = true
+                binding.btnSave.alpha = 1f
 
             } catch (e: Exception) {
                 Log.e("SelectVaccine", "Error loading vaccines: ${e.message}")
@@ -214,8 +214,6 @@ class select_vaccinePage : AppCompatActivity() {
             var duplicate = false
             for (babySnap in snapshot.children) {
                 val existingName = babySnap.child("fullName").value?.toString()?.trim() ?: ""
-                val existingDob = babySnap.child("dateOfBirth").value?.toString()?.trim() ?: ""
-
                 if (existingName.equals(fullName, ignoreCase = true)) {
                     duplicate = true
                     break
@@ -253,7 +251,6 @@ class select_vaccinePage : AppCompatActivity() {
             try {
                 val schedules = selectedVaccines.map { vaccine ->
                     val doseSchedules = updatedDoseMap[vaccine.id] ?: mutableListOf()
-
                     BabyVaccineSchedule(
                         vaccineName = vaccine.name,
                         vaccineType = vaccine.type,
