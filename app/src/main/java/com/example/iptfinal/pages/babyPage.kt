@@ -17,7 +17,6 @@ import com.example.iptfinal.models.Baby
 import com.example.iptfinal.services.DatabaseService
 import com.example.iptfinal.interfaces.InterfaceClass
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -43,12 +42,9 @@ class babyPage : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
-        setupSearchBar()
         setupAddButton()
         setupSwipeRefresh()
-
         loadBabies()
     }
 
@@ -57,27 +53,6 @@ class babyPage : Fragment() {
         binding.babyRecyclerView.apply {
             adapter = babyAdapter
             layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
-
-    private fun setupSearchBar() {
-        val searchContainer = binding.searchContainer
-        val searchIcon = binding.searchIcon
-        val searchInput = binding.searchInput
-
-        searchIcon.setOnClickListener {
-            if (!isExpanded) {
-                expandSearchBar(searchContainer)
-                searchInput.visibility = View.VISIBLE
-                searchInput.alpha = 0f
-                searchInput.animate().alpha(1f).setDuration(200).start()
-            } else {
-                collapseSearchBar(searchContainer)
-                searchInput.animate().alpha(0f).setDuration(200)
-                    .withEndAction { searchInput.visibility = View.GONE }
-                    .start()
-            }
-            isExpanded = !isExpanded
         }
     }
 
@@ -96,14 +71,16 @@ class babyPage : Fragment() {
 
     private fun loadBabies() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
         binding.loading.visibility = View.VISIBLE
         binding.babyRecyclerView.visibility = View.GONE
-
+        binding.btnAddBaby.isEnabled = false
+        binding.btnAddBaby.alpha = 0.5f
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val babies = fetchBabies(userId)
                 babyAdapter.submitList(babies)
+                binding.btnAddBaby.isEnabled = babies.size < 3
+                binding.btnAddBaby.alpha = if (babies.size < 3) 1f else 0.5f
                 isDataLoaded = true
             } catch (e: Exception) {
                 Log.e("BabyPage", "Error fetching babies: ${e.message}")
@@ -121,46 +98,14 @@ class babyPage : Fragment() {
                 override fun onBabiesLoaded(babies: List<Baby>) {
                     if (cont.isActive) cont.resume(babies)
                 }
-
                 override fun onError(message: String?) {
                     if (cont.isActive) cont.resumeWithException(Exception(message ?: "Error"))
                 }
             })
         }
 
-    private fun expandSearchBar(view: View) {
-        val startWidth = view.width
-        val endWidth = 600
-
-        val animator = ValueAnimator.ofInt(startWidth, endWidth)
-        animator.addUpdateListener {
-            val value = it.animatedValue as Int
-            val params = view.layoutParams
-            params.width = value
-            view.layoutParams = params
-        }
-        animator.duration = 300
-        animator.start()
-    }
-
-    private fun collapseSearchBar(view: View) {
-        val startWidth = view.width
-        val endWidth = 120
-
-        val animator = ValueAnimator.ofInt(startWidth, endWidth)
-        animator.addUpdateListener {
-            val value = it.animatedValue as Int
-            val params = view.layoutParams
-            params.width = value
-            view.layoutParams = params
-        }
-        animator.duration = 300
-        animator.start()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 }
-

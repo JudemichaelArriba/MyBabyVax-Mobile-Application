@@ -37,58 +37,27 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <LinearLayout
-                    android:id="@+id/searchContainer"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/search_background"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
 
-                    <ImageView
-                        android:id="@+id/searchIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_menu_search"
-                        app:tint="@color/mainColor" />
-
-                    <EditText
-                        android:id="@+id/searchInput"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:hint="Search"
-                        android:paddingStart="8dp"
-                        android:textColor="@color/mainColor"
-                        android:textSize="16sp"
-                        android:visibility="gone" />
-                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- SwipeRefreshLayout wrapping the RecyclerView -->
+
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefresh"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/cardView"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/cardView">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/babyRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clipToPadding="false"
                 android:paddingHorizontal="16dp"
-                android:paddingBottom="100dp"
-                android:clipToPadding="false"/>
+                android:paddingBottom="100dp" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -120,6 +89,6 @@
         android:layout_gravity="center"
         android:indeterminate="true"
         android:indeterminateTint="@color/mainColor"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </FrameLayout>
