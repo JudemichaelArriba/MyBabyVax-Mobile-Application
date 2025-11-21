@@ -3,6 +3,7 @@
     <color name="black">#FF000000</color>
 
     <color name="mainColor">#4169E1</color>
+    <color name="error">#FF0303</color>
     <color name="pink">#E91E63</color>
     <color name="rippleColor3">#E0E9FF</color>
     <color name="rippleColor">#A5BDFF</color>

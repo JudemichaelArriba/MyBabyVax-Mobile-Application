@@ -128,6 +128,10 @@ class EditProfile : AppCompatActivity() {
             binding.mobileTv.setText(if (user.mobileNum == "null") "N/A" else user.mobileNum)
         }
 
+        binding.emailTv.isEnabled = false
+        binding.emailTv.alpha = 0.7f
+        binding.emailTv.hint = "Email (read-only)"
+
         val isGoogleAccount = sessionManager.isGoogleLogin()
         if (isGoogleAccount) {
             binding.firstnameTv.isEnabled = false

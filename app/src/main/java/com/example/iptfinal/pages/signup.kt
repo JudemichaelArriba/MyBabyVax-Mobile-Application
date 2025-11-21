@@ -44,7 +44,6 @@ class signup : AppCompatActivity() {
             insets
         }
 
-
         val ccp: CountryCodePicker = binding.countryCodePicker
         ccp.setCountryForNameCode("PH")
         ccp.setAutoDetectedCountry(true)
@@ -65,10 +64,8 @@ class signup : AppCompatActivity() {
                     binding.mobileNumber.setSelection(12)
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
-
 
         dbService.fetchPuroks(object : InterfaceClass.PurokCallback {
             override fun onPuroksLoaded(puroks: List<String>) {
@@ -81,58 +78,46 @@ class signup : AppCompatActivity() {
                 binding.purokDropdown.setAdapter(adapter)
                 binding.purokDropdown.setTextColor(getColor(R.color.mainColor))
             }
-
             override fun onError(message: String) {
                 DialogHelper.showError(this@signup, "Error", "Failed to load puroks: $message")
             }
         })
-
 
         binding.emailTxt.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val email = s.toString()
                 if (!isValidEmail(email)) {
-                    binding.emailLayout.boxStrokeColor =
-                        getColor(com.google.android.material.R.color.design_default_color_error)
+                    binding.emailLayout.boxStrokeColor = getColor(R.color.error)
                     binding.emailLayout.helperText = "Invalid email"
                     binding.emailLayout.setHelperTextColor(
-                        ColorStateList.valueOf(
-                            getColor(com.google.android.material.R.color.design_default_color_error)
-                        )
+                        ColorStateList.valueOf(getColor(R.color.error))
                     )
                 } else {
                     binding.emailLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.emailLayout.helperText = ""
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
-
 
         binding.confirmPasswordEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val confirmPass = s.toString()
                 if (confirmPass != binding.passwordEditText.text.toString().trim()) {
-                    binding.ConfirmPasswordInputLayout.boxStrokeColor =
-                        getColor(com.google.android.material.R.color.design_default_color_error)
+                    binding.ConfirmPasswordInputLayout.boxStrokeColor = getColor(R.color.error)
                     binding.ConfirmPasswordInputLayout.helperText = "Password did not match"
                     binding.ConfirmPasswordInputLayout.setHelperTextColor(
-                        ColorStateList.valueOf(
-                            getColor(com.google.android.material.R.color.design_default_color_error)
-                        )
+                        ColorStateList.valueOf(getColor(R.color.error))
                     )
                 } else {
                     binding.ConfirmPasswordInputLayout.boxStrokeColor = getColor(R.color.mainColor)
                     binding.ConfirmPasswordInputLayout.helperText = ""
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
-
 
         binding.signupBtn.setOnClickListener {
             val firstname = binding.firstname.text.toString().trim()
@@ -148,14 +133,20 @@ class signup : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (confirmPass != password) {
-                DialogHelper.showWarning(
-                    this,
-                    "Warning",
-                    "Password and confirm password did not match"
+            if (!isValidEmail(email)) {
+                binding.emailLayout.boxStrokeColor = getColor(R.color.error)
+                binding.emailLayout.helperText = "Invalid email"
+                binding.emailLayout.setHelperTextColor(
+                    ColorStateList.valueOf(getColor(R.color.error))
                 )
                 return@setOnClickListener
             }
+
+            if (confirmPass != password) {
+                DialogHelper.showWarning(this, "Warning", "Password and confirm password did not match")
+                return@setOnClickListener
+            }
+
             binding.loadingOverlay.visibility = android.view.View.VISIBLE
             val database = FirebaseDatabase.getInstance().getReference("users")
 
@@ -168,7 +159,6 @@ class signup : AppCompatActivity() {
                     val dbFirstname = userSnap.child("firstname").value?.toString()?.trim() ?: ""
                     val dbLastname = userSnap.child("lastname").value?.toString()?.trim() ?: ""
                     val dbMobile = userSnap.child("mobileNum").value?.toString()?.trim() ?: ""
-
                     if (dbFirstname.equals(firstname, ignoreCase = true)) sameFirstName = true
                     if (dbLastname.equals(lastname, ignoreCase = true)) sameLastName = true
                     if (dbMobile == fullMobileNum) sameMobile = true
@@ -177,31 +167,16 @@ class signup : AppCompatActivity() {
                 when {
                     sameFirstName && sameLastName && sameMobile -> {
                         binding.loadingOverlay.visibility = android.view.View.GONE
-                        DialogHelper.showWarning(
-                            this,
-                            "Warning",
-                            "A user with the same name and contact number already exists"
-                        )
+                        DialogHelper.showWarning(this, "Warning", "A user with the same name and contact number already exists")
                     }
-
                     sameFirstName && sameLastName -> {
                         binding.loadingOverlay.visibility = android.view.View.GONE
-                        DialogHelper.showWarning(
-                            this,
-                            "Warning",
-                            "A user with the same name already exists"
-                        )
+                        DialogHelper.showWarning(this, "Warning", "A user with the same name already exists")
                     }
-
                     sameMobile -> {
                         binding.loadingOverlay.visibility = android.view.View.GONE
-                        DialogHelper.showWarningOk(
-                            this,
-                            "Warning",
-                            "This contact number is already registered"
-                        )
+                        DialogHelper.showWarningOk(this, "Warning", "This contact number is already registered")
                     }
-
                     else -> {
                         val authServices = AuthServices(this@signup)
                         authServices.signUpWithEmail(email, password) { user, error ->

@@ -79,8 +79,8 @@ class babyPage : Fragment() {
             try {
                 val babies = fetchBabies(userId)
                 babyAdapter.submitList(babies)
-                binding.btnAddBaby.isEnabled = babies.size < 3
-                binding.btnAddBaby.alpha = if (babies.size < 3) 1f else 0.5f
+                binding.btnAddBaby.isEnabled = true
+                binding.btnAddBaby.alpha = 1f
                 isDataLoaded = true
             } catch (e: Exception) {
                 Log.e("BabyPage", "Error fetching babies: ${e.message}")

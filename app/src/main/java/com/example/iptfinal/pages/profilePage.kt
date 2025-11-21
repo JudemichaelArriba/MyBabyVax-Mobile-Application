@@ -49,7 +49,7 @@ class profilePage : Fragment() {
 
             Log.d("ProfilePage", "Loaded user: ${user.firstname} ${user.lastname}")
 
-            // Load profile picture
+
             if (user.profilePic.isNotEmpty()) {
                 try {
                     if (user.profilePic.startsWith("/9j") || user.profilePic.contains("base64")) {
